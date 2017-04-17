@@ -18,11 +18,11 @@ Options:
 				g: get ACL
 				l: list
 				w: write
-	--permut	permutation will be test if you provide prefix or suffix, default=0
+	--permut	permutation can be tested, default=0
 				0: no permutation
-				1: if provided prefix and suffix are permuted (prefix.<bucket>.suffix, suffix.<bucket>.pprefix)
+				1: if provided prefix and suffix are permuted (prefix.<bucket>.suffix, suffix.<bucket>.prefix)
 				2: permutation applied only on the bucket name (a.b.c, b.c.a, ...)
-				3: permutation applied in the bucket name and prefix and suffix if provided
+				3: permutation applied on the bucket name and prefix and suffix if provided
 	--recurs	(not implement yet) if a bucket is found, another level will be added (permutations are not applied), ex:
 				if <bucket> is found then test <bucket>-xxx
 				if <bucket>-xxx is found then test <bucket>-xxx-yyy
