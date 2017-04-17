@@ -3,7 +3,7 @@ PHP tool to find Amazon S3 bucket
 Note that this is an automated tool, manual check is still required.  
 
 ```
-Usage: php s3-buckets-extractor.php [OPTIONS] -b <bucket name>
+Usage: php s3-buckets-extractor.php [OPTIONS] --bucket <bucket name>
 
 Options:
 	--bucket	single bucket name or listing file
