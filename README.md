@@ -9,6 +9,7 @@ Options:
 	--bucket	single bucket name or listing file
 	--glue	characters used as a separator when concatenate all elements
 	-h, --help	print this help
+	--list	do no perform any test, simply list the generated permutations
 	--no-color	disable colored output
 	--prefix	single prefix or listing file
 	--suffix	single suffix or listing file

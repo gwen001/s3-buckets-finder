@@ -38,6 +38,11 @@ set_time_limit( 0 );
 				Utils::help();
 				break;
 
+			case '--list':
+				$finder->disableTest();
+				//$i++;
+				break;
+				
 			case '--no-color':
 				$finder->disableColor();
 				//$i++;

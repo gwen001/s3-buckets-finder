@@ -40,6 +40,8 @@ class BucketFinder
 	
 	private $disable_color = false;
 	
+	private $disable_test = false;
+	
 	private $recursivity = false;
 	
 	private $verbosity = 0;
@@ -59,6 +61,11 @@ class BucketFinder
 
 	public function disableColor() {
 		$this->disable_color = true;
+	}
+	
+	
+	public function disableTest() {
+		$this->disable_test = true;
 	}
 	
 	
@@ -222,9 +229,6 @@ class BucketFinder
 	
 	private function init()
 	{
-		//var_dump( 'iciiii' );
-		//var_dump($this->t_bucket);
-		
 		$this->t_prefix = array_map( array($this,'cleanString'), $this->t_prefix );
 		$this->t_suffix = array_map( array($this,'cleanString'), $this->t_suffix );
 		$this->t_bucket = array_map( array($this,'cleanString'), $this->t_bucket );
@@ -269,16 +273,19 @@ class BucketFinder
 	{
 		$this->init();
 		$this->createGobalPermutations();
-		var_dump( $this->t_bucket );
-		exit();
+
+		$n_bucket = count( $this->t_bucket );
+		echo $n_bucket." buckets to test.\n\n";
+	
+		if( $this->disable_test ) {
+			echo implode( "\n", $this->t_bucket )."\n";
+			exit();
+		}
 		
 		posix_setsid();
 		declare( ticks=1 );
 		pcntl_signal( SIGCHLD, array($this,'signal_handler') );
 
-		$n_bucket = count( $this->t_bucket );
-		echo $n_bucket." buckets to test.\n\n";
-	
 		for( $current=0 ; $current<$n_bucket ; )
 		{
 			if( $this->n_child < $this->max_child )
@@ -331,6 +338,7 @@ class BucketFinder
 		}
 		
 		$t_variations = array_unique( $t_variations );
+		sort( $t_variations );
 		$this->t_bucket = $t_variations;
 	}
 	
