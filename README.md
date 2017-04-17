@@ -7,9 +7,9 @@ Usage: php s3-buckets-bruteforcer.php [OPTIONS] --bucket <bucket>
 
 Options:
 	--bucket	single bucket name or listing file
-	--glue	characters used as a separator when concatenate all elements
+	--glue		characters used as a separator when concatenate all elements, default are dot, dash and underscore
 	-h, --help	print this help
-	--list	do no perform any test, simply list the generated permutations
+	--list		do no perform any test, simply list the generated permutations
 	--no-color	disable colored output
 	--prefix	single prefix or listing file
 	--suffix	single suffix or listing file
@@ -17,14 +17,14 @@ Options:
 				e: test if exist (always performed)
 				s: set ACL
 				g: get ACL
-				l: list
+				l: list (cli and http)
 				w: write
 	--permut	permutation can be tested, default=0
 				0: no permutation
 				1: if provided prefix and suffix are permuted (prefix.<bucket>.suffix, suffix.<bucket>.prefix)
 				2: permutation applied only on the bucket name (a.b.c, b.c.a, ...)
 				3: each elements will be separately permuted, then glogale permutation
-	--recurs	(not implement yet) if a bucket is found, another level will be added (permutations are not applied), ex:
+	--rlevel	(not implement yet) max level of recursion, if a bucket is found, another level will be added (permutations are not applied), ex:
 				if <bucket> is found then test <bucket>-xxx
 				if <bucket>-xxx is found then test <bucket>-xxx-yyy
 	--region	set region (not implement yet)
