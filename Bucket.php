@@ -8,6 +8,19 @@
 
 class Bucket
 {
+	const REQUEST_TIMEOUT = 5;
+	const T_USER_AGENT = [
+		'Mozilla/5.0 (X11; Linux x86_64; rv:31.0) Gecko/20100101 Firefox/31.0 Iceweasel/31.7.0',
+		'Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)',
+		'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36',
+		'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.75.14 (KHTML, like Gecko) Version/7.0.3 Safari/7046A194A',
+		'Mozilla/5.0 (Windows NT 6.3; rv:36.0) Gecko/20100101 Firefox/36.0',
+		'Opera/9.80 (Windows NT 6.0) Presto/2.12.388 Version/12.14',
+		'Mozilla/5.0 (X11; Linux 3.5.4-1-ARCH i686; es) KHTML/4.9.1 (like Gecko) Konqueror/4.9',
+		'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:52.0) Gecko/20100101 Firefox/52.0',
+	];
+	const N_USER_AGENT = 7;
+	
 	public $name = '';
 	public $url = '';
 	
@@ -36,7 +49,8 @@ class Bucket
 		{
 			$c = curl_init();
 			curl_setopt( $c, CURLOPT_URL, $this->url );
-			curl_setopt( $c, CURLOPT_CONNECTTIMEOUT, 3 );
+			curl_setopt( $c, CURLOPT_CONNECTTIMEOUT, self::REQUEST_TIMEOUT );
+			curl_setopt( $c, CURLOPT_USERAGENT, self::T_USER_AGENT[rand(0,self::N_USER_AGENT)] );
 			//curl_setopt( $c, CURLOPT_FOLLOWLOCATION, true );
 			curl_setopt( $c, CURLOPT_RETURNTRANSFER, true );
 			curl_setopt( $c, CURLOPT_SSL_VERIFYPEER, false );
@@ -139,8 +153,9 @@ class Bucket
 		{
 			$c = curl_init();
 			curl_setopt( $c, CURLOPT_URL, $this->url );
-			curl_setopt( $c, CURLOPT_CONNECTTIMEOUT, 3 );
+			curl_setopt( $c, CURLOPT_CONNECTTIMEOUT, self::REQUEST_TIMEOUT );
 			//curl_setopt( $c, CURLOPT_FOLLOWLOCATION, true );
+			curl_setopt( $c, CURLOPT_USERAGENT, self::T_USER_AGENT[rand(0,self::N_USER_AGENT)] );
 			curl_setopt( $c, CURLOPT_RETURNTRANSFER, true );
 			curl_setopt( $c, CURLOPT_SSL_VERIFYPEER, false );
 			//curl_setopt( $c, CURLOPT_HEADER, true );
