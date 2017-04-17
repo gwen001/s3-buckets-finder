@@ -25,7 +25,7 @@ class Bucket
 	}
 	public function setName( $v ) {
 		$this->name = trim( $v );
-		$this->url = BucketFinder::AWS_URL.$this->name;
+		$this->url = BucketBruteForcer::AWS_URL.$this->name;
 		return true;
 	}
 	
@@ -48,7 +48,7 @@ class Bucket
 			curl_close( $c );
 			
 			$http_code = $t_info['http_code'];
-			$this->exist = in_array( $http_code, BucketFinder::AWS_VALID_HTTP_CODE );
+			$this->exist = in_array( $http_code, BucketBruteForcer::AWS_VALID_HTTP_CODE );
 		}
 		
 		return $this->exist;
@@ -69,13 +69,13 @@ class Bucket
 			//var_dump( $output );
 			
 			if( preg_match('#A client error#i',$output) ) {
-				$this->canSetACL = BucketFinder::TEST_FAILED;
+				$this->canSetACL = BucketBruteForcer::TEST_FAILED;
 			}
 			elseif( preg_match('#An error occurred#i',$output) ) {
-				$this->canSetACL = BucketFinder::TEST_UNKNOW;
+				$this->canSetACL = BucketBruteForcer::TEST_UNKNOW;
 			}
 			else {
-				$this->canSetACL = BucketFinder::TEST_SUCCESS;
+				$this->canSetACL = BucketBruteForcer::TEST_SUCCESS;
 			}
 		}
 		
@@ -94,13 +94,13 @@ class Bucket
 			//var_dump( $output );
 			
 			if( preg_match('#A client error#i',$output) ) {
-				$this->canGetACL = BucketFinder::TEST_FAILED;
+				$this->canGetACL = BucketBruteForcer::TEST_FAILED;
 			}
 			elseif( preg_match('#An error occurred#i',$output) ) {
-				$this->canGetACL = BucketFinder::TEST_UNKNOW;
+				$this->canGetACL = BucketBruteForcer::TEST_UNKNOW;
 			}
 			else {
-				$this->canGetACL = BucketFinder::TEST_SUCCESS;
+				$this->canGetACL = BucketBruteForcer::TEST_SUCCESS;
 			}
 		}
 		
@@ -119,13 +119,13 @@ class Bucket
 			//var_dump( $output );
 			
 			if( preg_match('#A client error#i',$output) ) {
-				$this->canList = BucketFinder::TEST_FAILED;
+				$this->canList = BucketBruteForcer::TEST_FAILED;
 			}
 			elseif( preg_match('#An error occurred#i',$output) ) {
-				$this->canList = BucketFinder::TEST_UNKNOW;
+				$this->canList = BucketBruteForcer::TEST_UNKNOW;
 			}
 			else {
-				$this->canList = BucketFinder::TEST_SUCCESS;
+				$this->canList = BucketBruteForcer::TEST_SUCCESS;
 			}
 		}
 		
@@ -153,11 +153,11 @@ class Bucket
 			$http_code = $t_info['http_code'];
 			
 			if( $http_code == 200 ) {
-				$this->canListHTTP = BucketFinder::TEST_SUCCESS;
-			} elseif( in_array($http_code,BucketFinder::AWS_VALID_HTTP_CODE) ) {
-				$this->canListHTTP = BucketFinder::TEST_FAILED;
+				$this->canListHTTP = BucketBruteForcer::TEST_SUCCESS;
+			} elseif( in_array($http_code,BucketBruteForcer::AWS_VALID_HTTP_CODE) ) {
+				$this->canListHTTP = BucketBruteForcer::TEST_FAILED;
 			} else {
-				$this->canListHTTP = BucketFinder::TEST_UNKNOW;
+				$this->canListHTTP = BucketBruteForcer::TEST_UNKNOW;
 			}
 		}
 		
@@ -169,7 +169,7 @@ class Bucket
 	{
 		if( is_null($this->canWrite) || $redo )
 		{
-			$tmpfile = tempnam( BucketFinder::TEMPFILE_DIR, BucketFinder::TEMPFILE_PREFIX );
+			$tmpfile = tempnam( BucketBruteForcer::TEMPFILE_DIR, BucketBruteForcer::TEMPFILE_PREFIX );
 			$cmd = "aws s3 cp ".$tmpfile." s3://".$this->name." 2>&1";
 			//echo $cmd;
 			exec( $cmd, $output );
@@ -177,13 +177,13 @@ class Bucket
 			//var_dump( $output );
 			
 			if( preg_match('#A client error|upload failed#i',$output) ) {
-				$this->canWrite = BucketFinder::TEST_FAILED;
+				$this->canWrite = BucketBruteForcer::TEST_FAILED;
 			}
 			elseif( preg_match('#An error occurred#i',$output) ) {
-				$this->canWrite = BucketFinder::TEST_UNKNOW;
+				$this->canWrite = BucketBruteForcer::TEST_UNKNOW;
 			}
 			else {
-				$this->canWrite = BucketFinder::TEST_SUCCESS;
+				$this->canWrite = BucketBruteForcer::TEST_SUCCESS;
 			}
 			
 			@unlink( $tmpfile );
