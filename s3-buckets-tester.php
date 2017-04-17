@@ -17,19 +17,19 @@ set_time_limit( 0 );
 
 // parse command line
 {
-	$finder = new BucketFinder();
+	$tester = new BucketTester();
 
 	$argc = $_SERVER['argc'] - 1;
 
 	for( $i=1; $i<=$argc; $i++ ) {
 		switch( $_SERVER['argv'][$i] ) {
 			case '--bucket':
-				$finder->setBucket( $_SERVER['argv'][$i+1] );
+				$tester->setBucket( $_SERVER['argv'][$i+1] );
 				$i++;
 				break;
 
 			case '--glue':
-				$finder->setGlue( $_SERVER['argv'][$i+1] );
+				$tester->setGlue( $_SERVER['argv'][$i+1] );
 				$i++;
 				break;
 				
@@ -39,55 +39,55 @@ set_time_limit( 0 );
 				break;
 
 			case '--list':
-				$finder->disableTest();
+				$tester->disableTest();
 				//$i++;
 				break;
 				
 			case '--no-color':
-				$finder->disableColor();
+				$tester->disableColor();
 				//$i++;
 				break;
 				
 			case '--perform':
-				$finder->setTests( $_SERVER['argv'][$i+1] );
+				$tester->setTests( $_SERVER['argv'][$i+1] );
 				$i++;
 				break;
 				
 			case '--permut':
-				$finder->setPermutation( $_SERVER['argv'][$i+1] );
+				$tester->setPermutation( $_SERVER['argv'][$i+1] );
 				$i++;
 				break;
 				
 			case '--prefix':
-				$finder->setPrefix( $_SERVER['argv'][$i+1] );
+				$tester->setPrefix( $_SERVER['argv'][$i+1] );
 				$i++;
 				break;
 				
 			case '--recurs':
-				$finder->enableRecursivity();
+				$tester->enableRecursivity();
 				//$i++;
 				break;
 				
 			case '--region':
-				if( !$finder->setRegion($_SERVER['argv'][$i+1]) ) {
+				if( !$tester->setRegion($_SERVER['argv'][$i+1]) ) {
 					Utils::help( 'Invalid region: '.$_SERVER['argv'][$i+1] );
 				}
 				$i++;
 				break;
 				
 			case '--suffix':
-				$finder->setSuffix( $_SERVER['argv'][$i+1] );
+				$tester->setSuffix( $_SERVER['argv'][$i+1] );
 				$i++;
 				break;
 				
 			case '--thread':
-				$finder->setMaxChild( $_SERVER['argv'][$i+1] );
+				$tester->setMaxChild( $_SERVER['argv'][$i+1] );
 				$i++;
 				break;
 				
 			case '-v':
 			case '--verbosity':
-				$finder->setVerbosity( (int)$_SERVER['argv'][$i+1] );
+				$tester->setVerbosity( (int)$_SERVER['argv'][$i+1] );
 				$i++;
 				break;
 
@@ -96,7 +96,7 @@ set_time_limit( 0 );
 		}
 	}
 
-	if( !$finder->getBucket() ) {
+	if( !$tester->getBucket() ) {
 		Utils::help( 'Bucket not found' );
 	}
 }
@@ -105,11 +105,7 @@ set_time_limit( 0 );
 
 // main loop
 {
-	$cnt = $finder->run();
-
-	//if( $cnt !== false ) {
-	//	echo "\n".$cnt[0]." objects found, ".$cnt[1]." readable.\n";
-	//}
+	$tester->run();
 }
 // ---
 

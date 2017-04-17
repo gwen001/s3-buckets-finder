@@ -6,7 +6,7 @@
  * - gwen -
  */
 
-class BucketFinder
+class BucketTester
 {
 	const WORD_SEPARATOR = '__SEP__';
 	
@@ -358,11 +358,8 @@ class BucketFinder
 				$this->getPermutations( $tmp, $t_permut );
 				foreach( $t_permut as $p ) {
 					$t_final_permut[] = implode( self::WORD_SEPARATOR, $p );
-					//foreach( self::T_SEPARATOR as $sep ) {
-						//$t_final_permut[] = implode( $sep, $p );
-					//}
 				}
-				// add each part of the subdomain ?
+				// add each part of the element ?
 				//$t_final_permut = array_merge( $t_final_permut, $tmp ); 
 			}
 		}
