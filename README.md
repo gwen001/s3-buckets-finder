@@ -25,8 +25,8 @@ Options:
 
 Examples:
 	php s3-buckets-finder.php --bucket test-test
-	php s3-buckets-finder.php --bucket listing.txt --perform sw
-	php s3-buckets-finder.php --bucket listing.txt --no-color --verbosity 2
+	php s3-buckets-finder.php --bucket listing.txt --perform e --thread 10
+	php s3-buckets-finder.php --bucket listing.txt --no-color --verbosity 3
 ```
 
 I don't believe in license.  
