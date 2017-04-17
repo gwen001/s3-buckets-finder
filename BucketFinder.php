@@ -8,6 +8,8 @@
 
 class BucketFinder
 {
+	const WORD_SEPARATOR = '__SEP__';
+	
 	const TEMPFILE_DIR = '/tmp/';
 	const TEMPFILE_PREFIX = 's3bf-';
 	
@@ -25,12 +27,20 @@ class BucketFinder
 	const AWS_VALID_HTTP_CODE = [200,301,403];
 	
 	private $t_bucket = [];
+	private $t_prefix = [];
+	private $t_suffix = [];
+	
+	private $t_glue = [ '', '.', '-', '_' ];
 	
 	private $tests = 'sglhw';
 	
 	private $region = '';
 	
+	private $permutation = '';
+	
 	private $disable_color = false;
+	
+	private $recursivity = false;
 	
 	private $verbosity = 0;
 
@@ -52,15 +62,48 @@ class BucketFinder
 	}
 	
 	
+	public function enableRecursivity() {
+		$this->recursivity = true;
+	}
+	
+	
+	public function getPrefix() {
+		return $this->t_prefix;
+	}
+	public function setPrefix( $v ) {
+		$v = trim( $v );
+		if( is_file($v) ) {
+			$this->t_prefix = array_merge( $this->t_prefix, file($v,FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) );
+		} else {
+			$this->t_prefix[] = $v;
+		}
+		return true;
+	}
+
+
+	public function getSuffix() {
+		return $this->t_suffix;
+	}
+	public function setSuffix( $v ) {
+		$v = trim( $v );
+		if( is_file($v) ) {
+			$this->t_suffix = array_merge( $this->t_suffix, file($v,FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) );
+		} else {
+			$this->t_suffix[] = $v;
+		}
+		return true;
+	}
+
+	
 	public function getBucket() {
 		return $this->t_bucket;
 	}
 	public function setBucket( $v ) {
 		$v = trim( $v );
 		if( is_file($v) ) {
-			$this->t_bucket = file( $v, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES );
+			$this->t_bucket = array_merge( $this->t_bucket, file($v,FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) );
 		} else {
-			$this->t_bucket = [$v];
+			$this->t_bucket[] = $v;
 		}
 		return true;
 	}
@@ -100,6 +143,24 @@ class BucketFinder
 	}
 
 	
+	public function getGlue() {
+		return $this->t_glue;
+	}
+	public function setGlue( $v ) {
+		$this->t_glue = str_split( trim($v), 1 );
+		return true;
+	}
+
+	
+	public function getPermutation() {
+		return $this->permutation;
+	}
+	public function setPermutation( $v ) {
+		$this->permutation = (int)$v;
+		return true;
+	}
+	
+	
 	public function getVerbosity() {
 		return $this->verbosity;
 	}
@@ -108,7 +169,22 @@ class BucketFinder
 		return true;
 	}
 
+	
+	private function cleanString( $str )
+	{
+		$str = preg_replace( '#[^a-z0-9\.\-\_]#', '', strtolower($str) );
+		//$str = preg_replace( '#[^a-z0-9]#', self::WORD_SEPARATOR, $str );
+		return $str;
+	}
 
+	
+	private function prepare4permutation( $str )
+	{
+		$str = preg_replace( '#[^a-z0-9]#', self::WORD_SEPARATOR, $str );
+		return $str;
+	}
+	
+	
 	// http://stackoverflow.com/questions/16238510/pcntl-fork-results-in-defunct-parent-process
 	// Thousand Thanks!
 	private function signal_handler( $signal, $pid=null, $status=null )
@@ -143,22 +219,68 @@ class BucketFinder
 		return true;
 	}
 
+	
+	private function init()
+	{
+		//var_dump( 'iciiii' );
+		//var_dump($this->t_bucket);
+		
+		$this->t_prefix = array_map( array($this,'cleanString'), $this->t_prefix );
+		$this->t_suffix = array_map( array($this,'cleanString'), $this->t_suffix );
+		$this->t_bucket = array_map( array($this,'cleanString'), $this->t_bucket );
+		
+		if( $this->permutation >= 1 )
+		{
+			$tmp = array_merge( $this->t_prefix, $this->t_suffix );
+			$this->t_prefix = $tmp;
+			$this->t_suffix = $tmp;
+		
+			if( $this->permutation >= 2 )
+			{
+				$this->t_bucket = $this->createElementPermutations( $this->t_bucket );
+				
+				if( $this->permutation >= 3 )
+				{
+					$this->t_prefix = $this->createElementPermutations( $this->t_prefix );
+					$this->t_suffix = $this->createElementPermutations( $this->t_suffix );
+				}
+			}
+		}
+		
+		$this->t_prefix = array_unique( $this->t_prefix );
+		$this->t_prefix[] = '';
+		//sort( $this->t_prefix );
+		
+		$this->t_suffix = array_unique( $this->t_suffix );
+		$this->t_suffix[] = '';
+		//sort( $this->t_suffix );
 
+		$this->t_bucket = array_unique( $this->t_bucket );
+		//sort( $this->t_bucket );
+		
+		//var_dump($this->t_prefix);
+		//var_dump($this->t_suffix);
+		//var_dump($this->t_bucket);
+		//exit();
+	}
+	
+	
 	public function run()
 	{
+		$this->init();
+		$this->createGobalPermutations();
+		var_dump( $this->t_bucket );
+		exit();
+		
 		posix_setsid();
 		declare( ticks=1 );
 		pcntl_signal( SIGCHLD, array($this,'signal_handler') );
 
 		$n_bucket = count( $this->t_bucket );
+		echo $n_bucket." buckets to test.\n\n";
 	
 		for( $current=0 ; $current<$n_bucket ; )
 		{
-			/*if( ($current_pointer%$this->cnt_notice) == 0 && !in_array($current_pointer,$already_noticed) ) {
-				echo "Current ".$current_pointer."...\n";
-				$already_noticed[] = $current_pointer;
-			}*/
-			
 			if( $this->n_child < $this->max_child )
 			{
 				$pid = pcntl_fork();
@@ -182,6 +304,84 @@ class BucketFinder
 			}
 
 			usleep( $this->sleep );
+		}
+	}
+	
+	
+	private function createGobalPermutations()
+	{
+		$t_variations = [];
+		
+		foreach( $this->t_bucket as $b )
+		{
+			foreach( $this->t_prefix as $p ) {
+				foreach( $this->t_suffix as $s ) {
+					$str = $b;
+					if( $p != '' ) {
+						$str = $p.self::WORD_SEPARATOR.$str;
+					}
+					if( $s != '' ) {
+						$str = $str.self::WORD_SEPARATOR.$s;
+					}
+					foreach( $this->t_glue as $sep ) {
+						$t_variations[] = str_replace( self::WORD_SEPARATOR, $sep, $str );
+					}
+				}
+			}
+		}
+		
+		$t_variations = array_unique( $t_variations );
+		$this->t_bucket = $t_variations;
+	}
+	
+	
+	private function createElementPermutations( $array )
+	{
+		$t_final_permut = [];
+		$array = array_map( array($this,'prepare4permutation'), $array );
+
+		foreach( $array as $i )
+		{
+			$tmp = explode( self::WORD_SEPARATOR, $i ); // ['www','domain','com']
+			if( count($tmp) <= 1 ) {
+				$t_final_permut[] = $i;
+			} else {
+				$t_permut = [];
+				$this->getPermutations( $tmp, $t_permut );
+				foreach( $t_permut as $p ) {
+					$t_final_permut[] = implode( self::WORD_SEPARATOR, $p );
+					//foreach( self::T_SEPARATOR as $sep ) {
+						//$t_final_permut[] = implode( $sep, $p );
+					//}
+				}
+				// add each part of the subdomain ?
+				//$t_final_permut = array_merge( $t_final_permut, $tmp ); 
+			}
+		}
+		
+		return $t_final_permut;
+	}
+	
+	
+	private function getPermutations( &$array, &$results, $start_i=0 )
+	{
+		if( $start_i == sizeof($array)-1 ) {
+			array_push( $results, $array );
+		}
+		
+		for( $i=$start_i; $i<sizeof($array); $i++ ) {
+			//Swap array value at $i and $start_i
+			$t = $array[$i];
+			$array[$i] = $array[$start_i];
+			$array[$start_i] = $t;
+	
+			//Recurse
+			$this->getPermutations( $array, $results, $start_i+1 );
+	
+			//Restore old order
+			$t = $array[$i];
+			$array[$i] = $array[$start_i];
+			$array[$start_i] = $t;
 		}
 	}
 	

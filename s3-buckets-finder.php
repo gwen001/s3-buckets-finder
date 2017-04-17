@@ -28,6 +28,11 @@ set_time_limit( 0 );
 				$i++;
 				break;
 
+			case '--glue':
+				$finder->setGlue( $_SERVER['argv'][$i+1] );
+				$i++;
+				break;
+				
 			case '-h':
 			case '--help':
 				Utils::help();
@@ -43,10 +48,30 @@ set_time_limit( 0 );
 				$i++;
 				break;
 				
+			case '--permut':
+				$finder->setPermutation( $_SERVER['argv'][$i+1] );
+				$i++;
+				break;
+				
+			case '--prefix':
+				$finder->setPrefix( $_SERVER['argv'][$i+1] );
+				$i++;
+				break;
+				
+			case '--recurs':
+				$finder->enableRecursivity();
+				//$i++;
+				break;
+				
 			case '--region':
 				if( !$finder->setRegion($_SERVER['argv'][$i+1]) ) {
 					Utils::help( 'Invalid region: '.$_SERVER['argv'][$i+1] );
 				}
+				$i++;
+				break;
+				
+			case '--suffix':
+				$finder->setSuffix( $_SERVER['argv'][$i+1] );
 				$i++;
 				break;
 				
@@ -67,7 +92,7 @@ set_time_limit( 0 );
 	}
 
 	if( !$finder->getBucket() ) {
-		Utils::help( 'Domain not found' );
+		Utils::help( 'Bucket not found' );
 	}
 }
 // ---
