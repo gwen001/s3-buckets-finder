@@ -23,7 +23,7 @@ Options:
 				w: write
 	--permut	permutation can be tested, default=0
 				0: no permutation
-				1: if provided prefix and suffix are permuted (prefix.<bucket>.suffix, suffix.<bucket>.prefix)
+				1: if both provided prefix and suffix are permuted (prefix.<bucket>.suffix, suffix.<bucket>.prefix)
 				2: permutation applied only on the bucket name (a.b.c, b.c.a, ...)
 				3: each elements will be separately permuted, then glogal permutation
 	--prefix	single prefix or listing file

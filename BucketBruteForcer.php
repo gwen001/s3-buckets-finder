@@ -249,10 +249,12 @@ class BucketBruteForcer
 		
 		if( $this->permutation >= 1 )
 		{
-			$tmp = array_merge( $this->t_prefix, $this->t_suffix );
-			$this->t_prefix = $tmp;
-			$this->t_suffix = $tmp;
-		
+			if( count($this->prefix) && count($this->suffi) ) {
+				$tmp = array_merge( $this->t_prefix, $this->t_suffix );
+				$this->t_prefix = $tmp;
+				$this->t_suffix = $tmp;
+			}
+			
 			if( $this->permutation >= 2 )
 			{
 				$this->t_bucket = $this->createElementPermutations( $this->t_bucket );
@@ -287,16 +289,16 @@ class BucketBruteForcer
 		$this->init();
 		$this->t_bucket = $this->createGobalPermutations( $this->t_bucket, $this->t_prefix, $this->t_suffix, $this->t_glue );
 
-		//$this->n_bucket = count( $this->t_bucket );
-		//echo $this->n_bucket." buckets to test.\n\n";
-		//var_dump($this->t_bucket);
-		//exit();
-	
 		if( $this->disable_test ) {
 			echo implode( "\n", $this->t_bucket )."\n";
 			exit();
 		}
-		
+
+		$this->n_bucket = count( $this->t_bucket );
+		echo $this->n_bucket." buckets to test.\n\n";
+		var_dump($this->t_bucket);
+		exit();
+			
 		posix_setsid();
 		declare( ticks=1 );
 		pcntl_signal( SIGCHLD, array($this,'signal_handler') );
@@ -466,6 +468,7 @@ class BucketBruteForcer
 				$s = $bucket->canSetAcl();
 				$this->printTestResult( 'put ACL',  $s, 'red' );
 				if( $s == self::TEST_SUCCESS ) {
+					echo "\n";
 					return;
 				}
 				echo ', ';
@@ -489,7 +492,7 @@ class BucketBruteForcer
 			
 			if( strstr($this->tests,'w') ) {
 				$w = $bucket->canWrite();
-				$this->printTestResult( 'write',  $w, 'orange' );
+				$this->printTestResult( 'write',  $w, 'red' );
 				echo ', ';
 			}
 			
