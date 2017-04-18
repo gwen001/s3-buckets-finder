@@ -296,8 +296,8 @@ class BucketBruteForcer
 
 		$this->n_bucket = count( $this->t_bucket );
 		echo $this->n_bucket." buckets to test.\n\n";
-		var_dump($this->t_bucket);
-		exit();
+		//var_dump($this->t_bucket);
+		//exit();
 			
 		posix_setsid();
 		declare( ticks=1 );
