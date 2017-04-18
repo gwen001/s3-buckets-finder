@@ -28,6 +28,10 @@ set_time_limit( 0 );
 				$i++;
 				break;
 
+			case '--force-recurse':
+				$bruteforcer->forceRecurse();
+				break;
+				
 			case '--glue':
 				$bruteforcer->setGlue( $_SERVER['argv'][$i+1] );
 				$i++;
@@ -40,7 +44,11 @@ set_time_limit( 0 );
 
 			case '--list':
 				$bruteforcer->disableTest();
-				//$i++;
+				break;
+				
+			case '--max-depth':
+				$bruteforcer->setMaxDepth( $_SERVER['argv'][$i+1] );
+				$i++;
 				break;
 				
 			case '--no-color':
@@ -63,14 +71,9 @@ set_time_limit( 0 );
 				$i++;
 				break;
 				
-			case '--recurs':
-				$bruteforcer->enableRecursivity();
-				//$i++;
-				break;
-				
 			case '--region':
 				if( !$bruteforcer->setRegion($_SERVER['argv'][$i+1]) ) {
-					Utils::help( 'Invalid region: '.$_SERVER['argv'][$i+1] );
+					Utils::help( 'Invalid region "'.$_SERVER['argv'][$i+1].'" ' );
 				}
 				$i++;
 				break;

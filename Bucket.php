@@ -24,6 +24,8 @@ class Bucket
 	public $name = '';
 	public $url = '';
 	
+	public $region = null;
+	
 	private $exist = null;
 	
 	private $canSetACL = null;
@@ -43,12 +45,28 @@ class Bucket
 	}
 	
 	
+	public function getRegion() {
+		return $this->region;
+	}
+	public function setRegion( $v ) {
+		$this->region = trim( $v );
+		return true;
+	}
+	
+	
 	public function exist( &$http_code=0, $redo=false )
 	{
 		if( is_null($this->exist) || $redo )
 		{
+			$url = $this->url;
+			
+			if( strlen($this->region) ) {
+				$url = str_replace( 's3.', 's3-'.$this->region.'.', $this->url );
+			}
+			//var_dump( $url );
+			
 			$c = curl_init();
-			curl_setopt( $c, CURLOPT_URL, $this->url );
+			curl_setopt( $c, CURLOPT_URL, $url );
 			curl_setopt( $c, CURLOPT_CONNECTTIMEOUT, self::REQUEST_TIMEOUT );
 			curl_setopt( $c, CURLOPT_USERAGENT, self::T_USER_AGENT[rand(0,self::N_USER_AGENT)] );
 			//curl_setopt( $c, CURLOPT_FOLLOWLOCATION, true );
@@ -151,8 +169,15 @@ class Bucket
 	{
 		if( is_null($this->canListHTTP) || $redo )
 		{
+			$url = $this->url;
+			
+			if( strlen($this->region) ) {
+				$url = str_replace( 's3.', 's3-'.$this->region.'.', $this->url );
+			}
+			//var_dump( $url );
+			
 			$c = curl_init();
-			curl_setopt( $c, CURLOPT_URL, $this->url );
+			curl_setopt( $c, CURLOPT_URL, $url );
 			curl_setopt( $c, CURLOPT_CONNECTTIMEOUT, self::REQUEST_TIMEOUT );
 			//curl_setopt( $c, CURLOPT_FOLLOWLOCATION, true );
 			curl_setopt( $c, CURLOPT_USERAGENT, self::T_USER_AGENT[rand(0,self::N_USER_AGENT)] );

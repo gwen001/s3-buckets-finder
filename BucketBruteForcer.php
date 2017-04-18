@@ -42,7 +42,10 @@ class BucketBruteForcer
 	
 	private $disable_test = false;
 	
-	private $recursivity = false;
+	private $max_depth = 1;
+	private $current_depth = 1;
+	
+	private $force_recurse = false;
 	
 	private $verbosity = 0;
 
@@ -61,6 +64,11 @@ class BucketBruteForcer
 	}
 
 
+	public function forceRecurse() {
+		$this->force_recurse = true;
+	}
+	
+	
 	public function disableColor() {
 		$this->disable_color = true;
 	}
@@ -71,8 +79,12 @@ class BucketBruteForcer
 	}
 	
 	
-	public function enableRecursivity() {
-		$this->recursivity = true;
+	public function getMaxDepth() {
+		return $this->max_depth;
+	}
+	public function setMaxDepth( $v ) {
+		$this->max_depth = (int)$v;
+		return true;
 	}
 	
 	
@@ -273,10 +285,10 @@ class BucketBruteForcer
 	public function run()
 	{
 		$this->init();
-		$this->createGobalPermutations();
+		$this->t_bucket = $this->createGobalPermutations( $this->t_bucket, $this->t_prefix, $this->t_suffix, $this->t_glue );
 
-		$n_bucket = count( $this->t_bucket );
-		echo $n_bucket." buckets to test.\n\n";
+		//$this->n_bucket = count( $this->t_bucket );
+		//echo $this->n_bucket." buckets to test.\n\n";
 		//var_dump($this->t_bucket);
 		//exit();
 	
@@ -288,7 +300,17 @@ class BucketBruteForcer
 		posix_setsid();
 		declare( ticks=1 );
 		pcntl_signal( SIGCHLD, array($this,'signal_handler') );
-
+		
+		$this->loop( $this->t_bucket );
+	}
+	
+	
+	private function loop( $t_buckets )
+	{
+		$n_bucket = count( $t_buckets );
+		//var_dump($n_bucket);
+		//echo $n_bucket." buckets to test.\n\n";
+				
 		for( $current=0 ; $current<$n_bucket ; )
 		{
 			if( $this->n_child < $this->max_child )
@@ -309,7 +331,7 @@ class BucketBruteForcer
 				} else {
 					// child process
 					usleep( rand($this->aws_min_sleep,$this->aws_max_sleep) );
-					$this->testBucket( $this->t_bucket[$current] );
+					$this->testBucket( $t_buckets[$current] );
 					exit( 0 );
 				}
 			}
@@ -319,14 +341,14 @@ class BucketBruteForcer
 	}
 	
 	
-	private function createGobalPermutations()
+	private function createGobalPermutations( $t_bucket, $t_prefix, $t_suffix, $t_glue )
 	{
 		$t_variations = [];
 		
-		foreach( $this->t_bucket as $b )
+		foreach( $t_bucket as $b )
 		{
-			foreach( $this->t_prefix as $p ) {
-				foreach( $this->t_suffix as $s ) {
+			foreach( $t_prefix as $p ) {
+				foreach( $t_suffix as $s ) {
 					$str = $b;
 					if( $p != '' ) {
 						$str = $p.self::WORD_SEPARATOR.$str;
@@ -334,7 +356,7 @@ class BucketBruteForcer
 					if( $s != '' ) {
 						$str = $str.self::WORD_SEPARATOR.$s;
 					}
-					foreach( $this->t_glue as $sep ) {
+					foreach( $t_glue as $sep ) {
 						$t_variations[] = str_replace( self::WORD_SEPARATOR, $sep, $str );
 					}
 				}
@@ -343,7 +365,8 @@ class BucketBruteForcer
 		
 		$t_variations = array_unique( $t_variations );
 		sort( $t_variations );
-		$this->t_bucket = $t_variations;
+		
+		return $t_variations;
 	}
 	
 	
@@ -379,15 +402,15 @@ class BucketBruteForcer
 		}
 		
 		for( $i=$start_i; $i<sizeof($array); $i++ ) {
-			//Swap array value at $i and $start_i
+			// swap array value at $i and $start_i
 			$t = $array[$i];
 			$array[$i] = $array[$start_i];
 			$array[$start_i] = $t;
 	
-			//Recurse
+			// recurse
 			$this->getPermutations( $array, $results, $start_i+1 );
 	
-			//Restore old order
+			// restore old order
 			$t = $array[$i];
 			$array[$i] = $array[$start_i];
 			$array[$start_i] = $t;
@@ -395,31 +418,22 @@ class BucketBruteForcer
 	}
 	
 	
-	private function extend()
+	/**
+	 * @todo only test the same separator character ??
+	 */
+	private function recurse( $bucket_name )
 	{
+		/*if( $this->verbosity <= 1 ) {
+			$this->output( 'Recursion level '.$this->current_depth."\n", 'yellow' );
+		}*/
 		
-		/*
-		$pid = pcntl_fork();
-		
-		if( $pid == -1 ) {
-			// fork error
-		} elseif( $pid ) {
-			// father
-			$this->n_child++;
-			$current++;
-			$this->t_process[$pid] = uniqid();
-	        if( isset($this->t_signal_queue[$pid]) ){
-	        	$this->signal_handler( SIGCHLD, $pid, $this->t_signal_queue[$pid] );
-	        	unset( $this->t_signal_queue[$pid] );
-	        }
-		} else {
-			// child process
-			usleep( rand($this->aws_min_sleep,$this->aws_max_sleep) );
-			$this->testBucket( $this->t_bucket[$current] );
-			exit( 0 );
-		}
-		*/
-		
+		$this->t_bucket[] = $bucket_name; // we don't want to retest this current bucket
+		$t_new_variations = $this->createGobalPermutations( [$bucket_name], $this->t_prefix, $this->t_suffix, $this->t_glue );
+		$t_new_variations = array_diff( $t_new_variations, $this->t_bucket );
+		sort( $t_new_variations ); // needed because the line above can lost some keys
+		//var_dump( $t_new_variations );
+
+		$this->loop( $t_new_variations );
 	}
 	
 	
@@ -429,15 +443,13 @@ class BucketBruteForcer
 		
 		$bucket = new Bucket();
 		$bucket->setName( $bucket_name );
+		$bucket->setRegion( $this->region );
 
 		$e = $bucket->exist( $http_code );
 		if( $e ) {
 			echo 'Testing: ';
 			$this->output( $bucket->getName()." , FOUND! (".$http_code.")", 'green' );
 			echo "\n";
-			//if( $this->max_level ) {
-			//	$this->extend( $bucket->getName() );
-			//}
 		} else {
 			if( $this->verbosity == 0 ) {
 				echo 'Testing: ';
@@ -446,47 +458,53 @@ class BucketBruteForcer
 			}
 		}
 		
-		if( !$e || !preg_match('#[sglw]#',$this->tests) ) {
-			return ;
-		}
-		
-		echo "Testing permissions: ";
-		
-		if( strstr($this->tests,'s') ) {
-			$s = $bucket->canSetAcl();
-			$this->printTestResult( 'put ACL',  $s, 'red' );
-			if( $s == self::TEST_SUCCESS ) {
-				return;
+		if( $e && preg_match('#[sglw]#',$this->tests) )
+		{
+			echo "Testing permissions: ";
+			
+			if( strstr($this->tests,'s') ) {
+				$s = $bucket->canSetAcl();
+				$this->printTestResult( 'put ACL',  $s, 'red' );
+				if( $s == self::TEST_SUCCESS ) {
+					return;
+				}
+				echo ', ';
 			}
-			echo ', ';
-		}
-		
-		if( strstr($this->tests,'g') ) {
-			$g = $bucket->canGetAcl();
-			$this->printTestResult( 'get ACL',  $g, 'orange' );
-			echo ', ';
-		}
-		
-		if( strstr($this->tests,'l') ) {
-			$l = $bucket->canList();
-			$this->printTestResult( 'list',  $l, 'orange' );
-			echo ', ';
-
-			$h = $bucket->canListHTTP();
-			$this->printTestResult( 'HTTP list',  $h, 'orange' );
-			echo ', ';
-		}
-		
-		if( strstr($this->tests,'w') ) {
-			$w = $bucket->canWrite();
-			$this->printTestResult( 'write',  $w, 'orange' );
-			echo ', ';
+			
+			if( strstr($this->tests,'g') ) {
+				$g = $bucket->canGetAcl();
+				$this->printTestResult( 'get ACL',  $g, 'orange' );
+				echo ', ';
+			}
+			
+			if( strstr($this->tests,'l') ) {
+				$l = $bucket->canList();
+				$this->printTestResult( 'list',  $l, 'orange' );
+				echo ', ';
+	
+				$h = $bucket->canListHTTP();
+				$this->printTestResult( 'HTTP list',  $h, 'orange' );
+				echo ', ';
+			}
+			
+			if( strstr($this->tests,'w') ) {
+				$w = $bucket->canWrite();
+				$this->printTestResult( 'write',  $w, 'orange' );
+				echo ', ';
+			}
+			
+			echo "\n";
 		}
 				
 		$result = ob_get_contents();
 		ob_end_clean();
 		
-		echo $result."\n";
+		echo $result;
+		
+		if( ($e || $this->force_recurse) && $this->max_depth && $this->current_depth<$this->max_depth ) {
+			$this->current_depth++;
+			$this->recurse( $bucket->getName() );
+		}
 	}
 	
 	
