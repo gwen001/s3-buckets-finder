@@ -15,7 +15,6 @@ Options:
 				if <bucket> is found then test <bucket>-xxx
 				if <bucket>-xxx is found then test <bucket>-xxx-yyy
 	--no-color	disable colored output
-	--prefix	single prefix or listing file
 	--perform	tests to perform, default=esglw
 				e: test if exist (always performed)
 				s: set ACL
@@ -27,6 +26,7 @@ Options:
 				1: if provided prefix and suffix are permuted (prefix.<bucket>.suffix, suffix.<bucket>.prefix)
 				2: permutation applied only on the bucket name (a.b.c, b.c.a, ...)
 				3: each elements will be separately permuted, then glogal permutation
+	--prefix	single prefix or listing file
 	--region	set the region, value can be:
 				us-east-1, us-east-2, us-west-1, us-west-2,
 				ap-south-1, ap-northeast-2, ap-southeast-1, ap-southeast-2, ap-northeast-1,

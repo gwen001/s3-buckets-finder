@@ -94,13 +94,13 @@ class Bucket
 	{
 		if( is_null($this->canSetACL) || $redo )
 		{
-			$cmd = "aws s3api put-bucket-acl --grant-full-control 'uri=\"http://acs.amazonaws.com/groups/global/AllUsers\"' --bucket ".$this->name." 2>&1";
+			$cmd = "aws s3api put-bucket-acl --grant-full-control 'uri=\"http://acs.amazonaws.com/groups/global/AllUsers\"' --bucket ".$this->name." ".(strlen($this->region)?'--region '.$this->region:'')." 2>&1";
 			//echo $cmd;
 			exec( $cmd, $output );
 			$output = strtolower( trim( implode("\n",$output) ) );
 			//var_dump( $output );
 			
-			if( preg_match('#A client error#i',$output) ) {
+			if( preg_match('#A client error|AllAccessDisabled|AllAccessDisabled#i',$output) ) {
 				$this->canSetACL = BucketBruteForcer::TEST_FAILED;
 			}
 			elseif( preg_match('#An error occurred#i',$output) ) {
@@ -119,13 +119,13 @@ class Bucket
 	{
 		if( is_null($this->canGetACL) || $redo )
 		{
-			$cmd = "aws s3api get-bucket-acl --bucket ".$this->name." 2>&1";
+			$cmd = "aws s3api get-bucket-acl --bucket ".$this->name." ".(strlen($this->region)?'--region '.$this->region:'')." 2>&1";
 			//echo $cmd;
 			exec( $cmd, $output );
 			$output = strtolower( trim( implode("\n",$output) ) );
 			//var_dump( $output );
 			
-			if( preg_match('#A client error#i',$output) ) {
+			if( preg_match('#A client error|AllAccessDisabled|AllAccessDisabled#i',$output) ) {
 				$this->canGetACL = BucketBruteForcer::TEST_FAILED;
 			}
 			elseif( preg_match('#An error occurred#i',$output) ) {
@@ -144,13 +144,13 @@ class Bucket
 	{
 		if( is_null($this->canList) || $redo )
 		{
-			$cmd = "aws s3 ls s3://".$this->name." 2>&1";
+			$cmd = "aws s3 ls s3://".$this->name." ".(strlen($this->region)?'--region '.$this->region:'')." 2>&1";
 			//echo $cmd;
 			exec( $cmd, $output );
 			$output = strtolower( trim( implode("\n",$output) ) );
 			//var_dump( $output );
 			
-			if( preg_match('#A client error#i',$output) ) {
+			if( preg_match('#A client error|AllAccessDisabled|AllAccessDisabled#i',$output) ) {
 				$this->canList = BucketBruteForcer::TEST_FAILED;
 			}
 			elseif( preg_match('#An error occurred#i',$output) ) {
@@ -210,13 +210,13 @@ class Bucket
 		if( is_null($this->canWrite) || $redo )
 		{
 			$tmpfile = tempnam( BucketBruteForcer::TEMPFILE_DIR, BucketBruteForcer::TEMPFILE_PREFIX );
-			$cmd = "aws s3 cp ".$tmpfile." s3://".$this->name." 2>&1";
+			$cmd = "aws s3 cp ".$tmpfile." s3://".$this->name." ".(strlen($this->region)?'--region '.$this->region:'')." 2>&1";
 			//echo $cmd;
 			exec( $cmd, $output );
 			$output = strtolower( trim( implode("\n",$output) ) );
 			//var_dump( $output );
 			
-			if( preg_match('#A client error|upload failed#i',$output) ) {
+			if( preg_match('#A client error|upload failed|AllAccessDisabled|AllAccessDisabled#i',$output) ) {
 				$this->canWrite = BucketBruteForcer::TEST_FAILED;
 			}
 			elseif( preg_match('#An error occurred#i',$output) ) {
