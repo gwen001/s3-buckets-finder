@@ -429,8 +429,16 @@ class BucketBruteForcer
 			$this->output( 'Recursion level '.$this->current_depth."\n", 'yellow' );
 		}*/
 		
+		$m = preg_match( '#[^0-9a-z]#i', $bucket_name, $matches );
+		//var_dump( $matches );
+		if( $m ) {
+			$t_glue = [ $matches[0] ];
+		} else {
+			$t_glue = $this->t_glue;
+		}
+		
 		$this->t_bucket[] = $bucket_name; // we don't want to retest this current bucket
-		$t_new_variations = $this->createGobalPermutations( [$bucket_name], $this->t_prefix, $this->t_suffix, $this->t_glue );
+		$t_new_variations = $this->createGobalPermutations( [$bucket_name], $this->t_prefix, $this->t_suffix, $t_glue );
 		$t_new_variations = array_diff( $t_new_variations, $this->t_bucket );
 		sort( $t_new_variations ); // needed because the line above can lost some keys
 		//var_dump( $t_new_variations );
