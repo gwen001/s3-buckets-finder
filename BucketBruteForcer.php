@@ -249,7 +249,7 @@ class BucketBruteForcer
 		
 		if( $this->permutation >= 1 )
 		{
-			if( count($this->prefix) && count($this->suffi) ) {
+			if( count($this->prefix) && count($this->suffix) ) {
 				$tmp = array_merge( $this->t_prefix, $this->t_suffix );
 				$this->t_prefix = $tmp;
 				$this->t_suffix = $tmp;
