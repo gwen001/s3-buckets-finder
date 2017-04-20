@@ -340,6 +340,11 @@ class BucketBruteForcer
 
 			usleep( $this->loop_sleep );
 		}
+		
+		while( $this->n_child ) {
+			// surely leave the loop please :)
+			sleep( 1 );
+		}
 	}
 	
 	
@@ -443,6 +448,13 @@ class BucketBruteForcer
 		sort( $t_new_variations ); // needed because the line above can lost some keys
 		//var_dump( $t_new_variations );
 
+		$this->n_child = 0;
+		// subthreads that create x subthreads that create x subthreads that create x subthreads that create x subthreads...........
+		// do you really want that ?? hell no!
+		$this->max_child = 1; // so childs can only create 1 child, that's it mother fucker!
+		$this->t_process = [];
+		$this->t_signal_queue = [];
+		
 		$this->loop( $t_new_variations );
 	}
 	

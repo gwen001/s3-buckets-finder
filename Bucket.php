@@ -35,12 +35,18 @@ class Bucket
 	private $canWrite = null;
 	
 	
+	public function __construct() {
+		$this->url = BucketBruteForcer::AWS_URL;
+	}
+	
+	
 	public function getName() {
 		return $this->name;
 	}
 	public function setName( $v ) {
 		$this->name = trim( $v );
-		$this->url = BucketBruteForcer::AWS_URL.$this->name;
+		//$this->url = BucketBruteForcer::AWS_URL.$this->name;
+		$this->url = str_replace( '//s3', '//'.$this->name.'.s3', $this->url );
 		return true;
 	}
 	
@@ -50,6 +56,7 @@ class Bucket
 	}
 	public function setRegion( $v ) {
 		$this->region = trim( $v );
+		$url = str_replace( 's3.', 's3-'.$this->region.'.', $this->url );
 		return true;
 	}
 	
@@ -58,15 +65,8 @@ class Bucket
 	{
 		if( is_null($this->exist) || $redo )
 		{
-			$url = $this->url;
-			
-			if( strlen($this->region) ) {
-				$url = str_replace( 's3.', 's3-'.$this->region.'.', $this->url );
-			}
-			//var_dump( $url );
-			
 			$c = curl_init();
-			curl_setopt( $c, CURLOPT_URL, $url );
+			curl_setopt( $c, CURLOPT_URL, $this->url );
 			curl_setopt( $c, CURLOPT_CONNECTTIMEOUT, self::REQUEST_TIMEOUT );
 			curl_setopt( $c, CURLOPT_USERAGENT, self::T_USER_AGENT[rand(0,self::N_USER_AGENT)] );
 			//curl_setopt( $c, CURLOPT_FOLLOWLOCATION, true );
@@ -144,7 +144,7 @@ class Bucket
 	{
 		if( is_null($this->canList) || $redo )
 		{
-			$cmd = "aws s3 ls s3://".$this->name." ".(strlen($this->region)?'--region '.$this->region:'')." 2>&1";
+			$cmd = "aws s3api list-objects --bucket ".$this->name." --max-item 5 ".(strlen($this->region)?'--region '.$this->region:'')." 2>&1";
 			//echo $cmd;
 			exec( $cmd, $output );
 			$output = strtolower( trim( implode("\n",$output) ) );
@@ -169,15 +169,8 @@ class Bucket
 	{
 		if( is_null($this->canListHTTP) || $redo )
 		{
-			$url = $this->url;
-			
-			if( strlen($this->region) ) {
-				$url = str_replace( 's3.', 's3-'.$this->region.'.', $this->url );
-			}
-			//var_dump( $url );
-			
 			$c = curl_init();
-			curl_setopt( $c, CURLOPT_URL, $url );
+			curl_setopt( $c, CURLOPT_URL, $this->url );
 			curl_setopt( $c, CURLOPT_CONNECTTIMEOUT, self::REQUEST_TIMEOUT );
 			//curl_setopt( $c, CURLOPT_FOLLOWLOCATION, true );
 			curl_setopt( $c, CURLOPT_USERAGENT, self::T_USER_AGENT[rand(0,self::N_USER_AGENT)] );
