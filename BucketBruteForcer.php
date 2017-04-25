@@ -470,7 +470,7 @@ class BucketBruteForcer
 		$e = $bucket->exist( $http_code );
 		if( $e ) {
 			echo 'Testing: ';
-			$this->output( $bucket->getName()." , FOUND! (".$http_code.")", 'green' );
+			$this->output( $bucket->getName()." , FOUND! (".$http_code.")", (($http_code == 200) ? 'light_green' : 'green') );
 			echo "\n";
 		} else {
 			if( $this->verbosity == 0 ) {
@@ -486,7 +486,7 @@ class BucketBruteForcer
 			
 			if( strstr($this->tests,'s') ) {
 				$s = $bucket->canSetAcl();
-				$this->printTestResult( 'put ACL',  $s, 'red' );
+				$this->printTestResult( 'put ACL',  $s, 'light_red' );
 				if( $s == self::TEST_SUCCESS ) {
 					echo "\n";
 					return;
