@@ -71,7 +71,7 @@ class Bucket
 			curl_setopt( $c, CURLOPT_USERAGENT, self::T_USER_AGENT[rand(0,self::N_USER_AGENT)] );
 			//curl_setopt( $c, CURLOPT_FOLLOWLOCATION, true );
 			curl_setopt( $c, CURLOPT_RETURNTRANSFER, true );
-			curl_setopt( $c, CURLOPT_SSL_VERIFYPEER, false );
+			//curl_setopt( $c, CURLOPT_SSL_VERIFYPEER, false );
 			//curl_setopt( $c, CURLOPT_HEADER, true );
 			$r = curl_exec( $c );
 			//var_dump( $r );
@@ -80,6 +80,28 @@ class Bucket
 			curl_close( $c );
 			
 			$http_code = $t_info['http_code'];
+			
+			if( $http_code == 0 )
+			{
+				$this->url = str_replace( 'https://', 'http://', $this->url );
+				
+				$c = curl_init();
+				curl_setopt( $c, CURLOPT_URL, $this->url );
+				curl_setopt( $c, CURLOPT_CONNECTTIMEOUT, self::REQUEST_TIMEOUT );
+				curl_setopt( $c, CURLOPT_USERAGENT, self::T_USER_AGENT[rand(0,self::N_USER_AGENT)] );
+				//curl_setopt( $c, CURLOPT_FOLLOWLOCATION, true );
+				curl_setopt( $c, CURLOPT_RETURNTRANSFER, true );
+				//curl_setopt( $c, CURLOPT_SSL_VERIFYPEER, false );
+				//curl_setopt( $c, CURLOPT_HEADER, true );
+				$r = curl_exec( $c );
+				//var_dump( $r );
+				$t_info = curl_getinfo( $c );
+				//var_dump( $t_info );
+				curl_close( $c );
+				
+				$http_code = $t_info['http_code'];
+			}
+			
 			$this->exist = in_array( $http_code, BucketBruteForcer::AWS_VALID_HTTP_CODE );
 		}
 		
