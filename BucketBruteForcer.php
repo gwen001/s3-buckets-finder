@@ -470,7 +470,7 @@ class BucketBruteForcer
 		$e = $bucket->exist( $http_code );
 		if( $e ) {
 			echo 'Testing: ';
-			$this->output( $bucket->getName()." , FOUND! (".$http_code.")", (($http_code == 200) ? 'light_green' : 'green') );
+			$this->output( $bucket->getName()." FOUND! (".$http_code.")", (($http_code == 200) ? 'light_green' : 'green') );
 			echo "\n";
 		} else {
 			if( $this->verbosity == 0 ) {
