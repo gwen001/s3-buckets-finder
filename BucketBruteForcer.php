@@ -486,7 +486,7 @@ class BucketBruteForcer
 			
 			if( strstr($this->tests,'s') ) {
 				$s = $bucket->canSetAcl();
-				$this->printTestResult( 'put ACL',  $s, 'light_red' );
+				$this->printTestResult( 'put ACL',  $s, 'red' );
 				if( $s == self::TEST_SUCCESS ) {
 					echo "\n";
 					return;

@@ -122,7 +122,7 @@ class Bucket
 			$output = strtolower( trim( implode("\n",$output) ) );
 			//var_dump( $output );
 			
-			if( preg_match('#A client error|AllAccessDisabled|AllAccessDisabled#i',$output) ) {
+			if( preg_match('#A client error|AllAccessDisabled|AllAccessDisabled|AccessDenied#i',$output) ) {
 				$this->canSetACL = BucketBruteForcer::TEST_FAILED;
 			}
 			elseif( preg_match('#An error occurred#i',$output) ) {
@@ -147,7 +147,7 @@ class Bucket
 			$output = strtolower( trim( implode("\n",$output) ) );
 			//var_dump( $output );
 			
-			if( preg_match('#A client error|AllAccessDisabled|AllAccessDisabled#i',$output) ) {
+			if( preg_match('#A client error|AllAccessDisabled|AllAccessDisabled|AccessDenied#i',$output) ) {
 				$this->canGetACL = BucketBruteForcer::TEST_FAILED;
 			}
 			elseif( preg_match('#An error occurred#i',$output) ) {
@@ -172,7 +172,7 @@ class Bucket
 			$output = strtolower( trim( implode("\n",$output) ) );
 			//var_dump( $output );
 			
-			if( preg_match('#A client error|AllAccessDisabled|AllAccessDisabled#i',$output) ) {
+			if( preg_match('#A client error|AllAccessDisabled|AllAccessDisabled|AccessDenied#i',$output) ) {
 				$this->canList = BucketBruteForcer::TEST_FAILED;
 			}
 			elseif( preg_match('#An error occurred#i',$output) ) {
@@ -231,7 +231,7 @@ class Bucket
 			$output = strtolower( trim( implode("\n",$output) ) );
 			//var_dump( $output );
 			
-			if( preg_match('#A client error|upload failed|AllAccessDisabled|AllAccessDisabled#i',$output) ) {
+			if( preg_match('#A client error|upload failed|AllAccessDisabled|AllAccessDisabled|AccessDenied#i',$output) ) {
 				$this->canWrite = BucketBruteForcer::TEST_FAILED;
 			}
 			elseif( preg_match('#An error occurred#i',$output) ) {
