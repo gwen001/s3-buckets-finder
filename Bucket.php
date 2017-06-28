@@ -117,7 +117,7 @@ class Bucket
 		if( is_null($this->canSetACL) || $redo )
 		{
 			$cmd = "aws s3api put-bucket-acl --grant-full-control 'uri=\"http://acs.amazonaws.com/groups/global/AllUsers\"' --bucket ".$this->name." ".(strlen($this->region)?'--region '.$this->region:'')." 2>&1";
-			//echo $cmd;
+			//echo $cmd."\n";
 			exec( $cmd, $output );
 			$output = strtolower( trim( implode("\n",$output) ) );
 			//var_dump( $output );
@@ -225,6 +225,7 @@ class Bucket
 		if( is_null($this->canWrite) || $redo )
 		{
 			$tmpfile = tempnam( BucketBruteForcer::TEMPFILE_DIR, BucketBruteForcer::TEMPFILE_PREFIX );
+			file_put_contents( $tmpfile, 'test' );
 			$cmd = "aws s3 cp ".$tmpfile." s3://".$this->name." ".(strlen($this->region)?'--region '.$this->region:'')." 2>&1";
 			//echo $cmd;
 			exec( $cmd, $output );

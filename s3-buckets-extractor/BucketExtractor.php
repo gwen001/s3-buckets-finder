@@ -93,19 +93,27 @@ class BucketExtractor
 
 	public function run()
 	{
-		echo 'Checking '.$this->bucket_url." via ".self::TECHNIK_WEB."\n";
+		echo 'Checking '.$this->bucket_url." via ".self::TECHNIK_WEB." (https)\n";
         $this->datas = @file_get_contents( $this->bucket_url );
 
         if( $this->datas ) {
             $this->technik = self::TECHNIK_WEB;
         } else {
-            echo 'Checking '.$this->bucket_url." via ".self::TECHNIK_CLI." (can be very long...)\n";
-            $cmd = exec( 'aws s3 ls s3://'.$this->bucket.' --recursive 2>/dev/null', $this->datas );
-            if( is_array($this->datas) && count($this->datas) ) {
-                $this->technik = self::TECHNIK_CLI;
-            } else {
-				Utils::help( 'This bucket does not exist or you do not have enough permission to read it' );
-            }
+        	$this->bucket_url = str_replace( 'https', 'http', $this->bucket_url );
+			echo 'Checking '.$this->bucket_url." via ".self::TECHNIK_WEB." (http)\n";
+	        $this->datas = @file_get_contents( $this->bucket_url );
+
+	        if( $this->datas ) {
+	            $this->technik = self::TECHNIK_WEB;
+	        } else {
+	            echo 'Checking '.$this->bucket_url." via ".self::TECHNIK_CLI." (can be very long...)\n";
+	            $cmd = exec( 'aws s3 ls s3://'.$this->bucket.' --recursive 2>/dev/null', $this->datas );
+	            if( is_array($this->datas) && count($this->datas) ) {
+	                $this->technik = self::TECHNIK_CLI;
+	            } else {
+					Utils::help( 'This bucket does not exist or you do not have enough permission to read it' );
+	            }
+        	}
         }
 		
 		if( $this->download ) {
@@ -132,7 +140,7 @@ class BucketExtractor
 	{
 		$cnt = 0;
 		$total = 0;
-		
+
 		foreach( $datas as $line )
 		{
 			$line = trim( $line );
@@ -146,19 +154,24 @@ class BucketExtractor
 				continue;
 			}
 			
-			$total++;
 			$f_name = $tmp[3];
+			if( substr($f_name,-1) == '/' ) {
+				continue;
+			}
 			$ext = $this->_extension( basename($f_name) );
 			if( in_array($ext,$this->ignore) ) {
 				continue;
 			}
 			
+			$total++;
 			$f_size = $tmp[2];
 			$f_url = $this->bucket_url.'/'.$f_name;
-			$f_datas = trim( @file_get_contents($f_url) );
+			$f_datas = @file_get_contents( $f_url );
 			
-			if( $f_datas )
+			if( $f_datas !== false )
 			{
+				$f_datas = trim( $f_datas );
+				
 				if( $this->verbosity >= 1 ) {
 					Utils::_print( $f_url." (".Utils::format_bytes((int)$f_size).")\n" );
 				}
@@ -183,16 +196,22 @@ class BucketExtractor
 	private function extractWEB( $datas )
 	{
 		$cnt = 0;
+		$total = 0;
 		$xml = new SimpleXmlElement( $datas );
 		
 		foreach( $xml->Contents as $content )
 		{
 			$f_name = (string)$content->Key;
+			if( substr($f_name,-1) == '/' ) {
+				continue;
+			}
+			
 			$ext = $this->_extension( basename($f_name) );
 			if( in_array($ext,$this->ignore) ) {
 				continue;
 			}
 
+			$total++;
 			$f_url = $this->bucket_url.'/'.$f_name;
 
 			$c = curl_init();
@@ -225,7 +244,7 @@ class BucketExtractor
 			}
 		}
 
-		return [count($xml->Contents),$cnt];
+		return [$total,$cnt];
 	}
 
 
