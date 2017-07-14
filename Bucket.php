@@ -25,6 +25,7 @@ class Bucket
 	public $url = '';
 	
 	public $region = null;
+	//public $detect_region = false;
 	
 	private $exist = null;
 	
@@ -38,6 +39,11 @@ class Bucket
 	public function __construct() {
 		$this->url = BucketBruteForcer::AWS_URL;
 	}
+	
+	
+	/*public function detectRegion() {
+		return $this->detect_region = true;
+	}*/
 	
 	
 	public function getName() {
@@ -109,6 +115,21 @@ class Bucket
 	}
 	
 	
+	public function detectRegion()
+	{
+		foreach( BucketBruteForcer::AWS_REGION as $r )
+		{
+			$this->setRegion( $r );
+			
+			if( $this->canList(true) != 2 ) {
+				return $r;
+			}
+		}
+		
+		return false;
+	}
+	
+	
 	// 0: success
 	// 1: failed
 	// 2: unknown
@@ -142,7 +163,7 @@ class Bucket
 		if( is_null($this->canGetACL) || $redo )
 		{
 			$cmd = "aws s3api get-bucket-acl --bucket ".$this->name." ".(strlen($this->region)?'--region '.$this->region:'')." 2>&1";
-			//echo $cmd;
+			//echo $cmd."\n";
 			exec( $cmd, $output );
 			$output = strtolower( trim( implode("\n",$output) ) );
 			//var_dump( $output );
@@ -167,7 +188,7 @@ class Bucket
 		if( is_null($this->canList) || $redo )
 		{
 			$cmd = "aws s3api list-objects --bucket ".$this->name." --max-item 5 ".(strlen($this->region)?'--region '.$this->region:'')." 2>&1";
-			//echo $cmd;
+			//echo $cmd."\n";
 			exec( $cmd, $output );
 			$output = strtolower( trim( implode("\n",$output) ) );
 			//var_dump( $output );
@@ -227,7 +248,7 @@ class Bucket
 			$tmpfile = tempnam( BucketBruteForcer::TEMPFILE_DIR, BucketBruteForcer::TEMPFILE_PREFIX );
 			file_put_contents( $tmpfile, 'test' );
 			$cmd = "aws s3 cp ".$tmpfile." s3://".$this->name." ".(strlen($this->region)?'--region '.$this->region:'')." 2>&1";
-			//echo $cmd;
+			//echo $cmd."\n";
 			exec( $cmd, $output );
 			$output = strtolower( trim( implode("\n",$output) ) );
 			//var_dump( $output );

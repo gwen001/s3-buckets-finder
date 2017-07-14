@@ -19,9 +19,9 @@ class BucketBruteForcer
 	
 	const AWS_URL = 'https://s3.amazonaws.com/';
 	const AWS_REGION = [
+		'eu-west-1', 'eu-west-2', 'eu-central-1',
 		'us-east-1', 'us-east-2', 'us-west-1', 'us-west-2',
 		'ap-south-1', 'ap-northeast-2', 'ap-southeast-1', 'ap-southeast-2', 'ap-northeast-1',
-		'eu-central-1', 'eu-west-1', 'eu-west-2',
 		'ca-central-1', 'sa-east-1',
 	];
 	const AWS_VALID_HTTP_CODE = [200,301,403];
@@ -48,6 +48,8 @@ class BucketBruteForcer
 	private $force_recurse = false;
 	
 	private $verbosity = 0;
+	
+	private $detect_region = false;
 
 	
 	private $n_child = 0;
@@ -66,6 +68,11 @@ class BucketBruteForcer
 
 	public function forceRecurse() {
 		$this->force_recurse = true;
+	}
+	
+	
+	public function detectRegion() {
+		return $this->detect_region = true;
 	}
 	
 	
@@ -466,7 +473,7 @@ class BucketBruteForcer
 		$bucket = new Bucket();
 		$bucket->setName( $bucket_name );
 		$bucket->setRegion( $this->region );
-
+		
 		$e = $bucket->exist( $http_code );
 		if( $e ) {
 			echo 'Testing: ';
@@ -477,6 +484,19 @@ class BucketBruteForcer
 				echo 'Testing: ';
 				$this->output( $bucket->getName()." , not found (".$http_code.")", 'light_grey' );
 				echo "\n";
+			}
+		}
+		
+		if( $this->detect_region )
+		{
+			$region = $bucket->detectRegion();
+
+			if( $region ) {
+				echo 'Region detected: '.$region."\n";
+				$bucket->setRegion( $region );
+			} else {
+				echo "Region detected: not found!";
+				$bucket->setRegion( null );
 			}
 		}
 		

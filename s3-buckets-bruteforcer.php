@@ -28,6 +28,10 @@ set_time_limit( 0 );
 				$i++;
 				break;
 
+			case '--detect-region':
+				$bruteforcer->detectRegion();
+				break;
+			
 			case '--force-recurse':
 				$bruteforcer->forceRecurse();
 				break;
