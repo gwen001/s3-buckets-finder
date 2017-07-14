@@ -29,7 +29,7 @@ Options:
 	--prefix	single prefix or listing file
 	--region	set the region, value can be:
 				us-east-1 us-east-2 us-west-1 us-west-2
-				ap-south-1 ap-northeast-2 ap-southeast-1 ap-southeast-2 ap-northeast-1
+				ap-south-1 ap-southeast-1 ap-southeast-2 ap-northeast-1 ap-northeast-2
 				eu-central-1 eu-west-1 eu-west-2
 				ca-central-1 sa-east-1
 	--suffix	single suffix or listing file
@@ -48,5 +48,12 @@ Examples:
 	php s3-buckets-bruteforcer.php --bucket listing.txt --region us-east-2 --rlevel 3
 ```
 
+# Requirements
+```
+apt-get install awscli
+```
+
 I don't believe in license.  
 You can do want you want with this program.  
+
+![s3 buckets bruteforcer example] (https://raw.githubusercontent.com/gwen001/s3-buckets-extractor/master/example-bf.png)

@@ -46,6 +46,11 @@ set_time_limit( 0 );
 				$i++;
 				break;
 
+			case '-r':
+				$extractor->setRegion( $_SERVER['argv'][$i+1] );
+				$i++;
+				break;
+
 			case '-v':
 				@$extractor->setVerbosity( (int)$_SERVER['argv'][$i+1] );
 				$i++;

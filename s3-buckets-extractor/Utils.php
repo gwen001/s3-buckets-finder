@@ -94,8 +94,8 @@ class Utils
 	public static function format_bytes( $size )
 	{
 		$units = array('b', 'kb', 'mb', 'gb', 'tb');
-		for( $i=0 ; $size>=1024 && $i<4 ; $i++ ) {
-			$size /= 1024;
+		for( $i=0 ; $size>=1000 && $i<4 ; $i++ ) {
+			$size /= 1000;
 		}
 		return round($size, 2).$units[$i];
 	}

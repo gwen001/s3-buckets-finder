@@ -11,6 +11,7 @@ Options:
 	-g	grab the directories/files
 	-h	print this help
 	-i	extensions to ignore (default=bmp;gif;jpg;jpeg;svg)
+	-r	set the region
 	-v	set verbosity: 0=none, 1=only readable, 2=all (default=2)
 
 Examples:
@@ -18,11 +19,12 @@ Examples:
 	php s3-buckets-extractor.php -b test-test -v 1 -i txt;ttf;woff
 ```
 
+# Requirements
+```
+apt-get install awscli
+```
+
 I don't believe in license.  
 You can do want you want with this program.  
 
-![s3 buckets extractor example]
-(https://raw.githubusercontent.com/gwen001/s3-buckets-extractor/master/example-ex.png)
-
-![s3 buckets bruteforcer example]
-(https://raw.githubusercontent.com/gwen001/s3-buckets-extractor/master/example-bf.png)
+![s3 buckets extractor example] (https://raw.githubusercontent.com/gwen001/s3-buckets-extractor/master/example-ex.png)

@@ -11,6 +11,7 @@ class BucketExtractor
 	const AWS_URL = '.s3.amazonaws.com';
 	const TECHNIK_WEB = 'WEB';
 	const TECHNIK_CLI = 'CLI';
+	const CLI_MAX_ITEM = 10;
 	const IGNORE_SEP = ',';
 
 	private $bucket = null;
@@ -23,7 +24,9 @@ class BucketExtractor
 	private $datas = null;
 	
 	private $technik = null;
-
+	
+	private $region = null;
+	
 	// 0=do no print anything, 1=only readable, 2=everything
 	private $verbosity = 2;
 
@@ -82,6 +85,15 @@ class BucketExtractor
 	}
 
 
+	public function getRegion() {
+		return $this->region;
+	}
+	public function setRegion( $v ) {
+		$this->region = trim( $v );
+		return true;
+	}
+
+
 	public function getVerbosity() {
 		return $this->verbosity;
 	}
@@ -95,6 +107,7 @@ class BucketExtractor
 	{
 		echo 'Checking '.$this->bucket_url." via ".self::TECHNIK_WEB." (https)\n";
         $this->datas = @file_get_contents( $this->bucket_url );
+        $this->datas = null;
 
         if( $this->datas ) {
             $this->technik = self::TECHNIK_WEB;
@@ -102,12 +115,18 @@ class BucketExtractor
         	$this->bucket_url = str_replace( 'https', 'http', $this->bucket_url );
 			echo 'Checking '.$this->bucket_url." via ".self::TECHNIK_WEB." (http)\n";
 	        $this->datas = @file_get_contents( $this->bucket_url );
-
+	        $this->datas = null;
+			
 	        if( $this->datas ) {
 	            $this->technik = self::TECHNIK_WEB;
 	        } else {
 	            echo 'Checking '.$this->bucket_url." via ".self::TECHNIK_CLI." (can be very long...)\n";
-	            $cmd = exec( 'aws s3 ls s3://'.$this->bucket.' --recursive 2>/dev/null', $this->datas );
+	            //exec( 'aws s3 ls s3://'.$this->bucket.' --recursive 2>/dev/null', $this->datas );
+       			$cmd = "aws s3api list-objects --bucket ".$this->bucket." --max-item 5 ".(strlen($this->region)?'--region '.$this->region:'')." 2>/dev/null";
+				//echo $cmd."\n";
+				exec( $cmd, $this->datas );
+				//var_dump($this->datas);
+				
 	            if( is_array($this->datas) && count($this->datas) ) {
 	                $this->technik = self::TECHNIK_CLI;
 	            } else {
@@ -136,58 +155,76 @@ class BucketExtractor
 	}
 	
 	
-	private function extractCLI( $datas )
+	private function extractCLI( $unused )
 	{
 		$cnt = 0;
 		$total = 0;
+		$s_token = null;
 
-		foreach( $datas as $line )
+		do
 		{
-			$line = trim( $line );
-			if( $line == '' ) {
-				continue;
+			$cmd = "aws s3api list-objects --bucket ".$this->bucket." --max-item ".self::CLI_MAX_ITEM." ".(strlen($this->region)?'--region '.$this->region:'')." ".(strlen($s_token)?'--starting-token '.$s_token:'')." 2>/dev/null";
+			//echo $cmd."\n";
+			exec( $cmd, $datas );
+			$datas = implode( "\n", $datas );
+			$t_datas = json_decode( $datas, true );
+			
+			if( isset($t_datas['NextToken']) ) {
+				$s_token = $t_datas['NextToken'];
+			} else {
+				$s_token = null;
 			}
 			
-			$line = preg_replace( '#\s+#', ' ', $line );
-			$tmp = explode( ' ', $line );
-			if( count($tmp) != 4 ) {
-				continue;
-			}
-			
-			$f_name = $tmp[3];
-			if( substr($f_name,-1) == '/' ) {
-				continue;
-			}
-			$ext = $this->_extension( basename($f_name) );
-			if( in_array($ext,$this->ignore) ) {
-				continue;
-			}
-			
-			$total++;
-			$f_size = $tmp[2];
-			$f_url = $this->bucket_url.'/'.$f_name;
-			$f_datas = @file_get_contents( $f_url );
-			
-			if( $f_datas !== false )
+			foreach( $t_datas['Contents'] as $o )
 			{
-				$f_datas = trim( $f_datas );
-				
-				if( $this->verbosity >= 1 ) {
-					Utils::_print( $f_url." (".Utils::format_bytes((int)$f_size).")\n" );
+				$f_name = $o['Key'];
+				if( substr($f_name,-1) == '/' || preg_match('#\$folder\$#',$f_name) ) {
+					if( $this->download ) {
+						$this->_mkdir( $this->destination.'/'.str_replace('_$folder$','',$f_name) );
+					}
+					continue;
 				}
+				
+				$ext = $this->_extension( basename($f_name) );
+				if( in_array($ext,$this->ignore) ) {
+					continue;
+				}
+				
+				$total++;
+				$f_size = $o['Size'];
+				$f_url = $this->bucket_url.'/'.$f_name;
+				
+				$tmpfile = tempnam( '/tmp/', 's3bf-' );
+				$cmd = "aws s3api get-object --bucket ".$this->bucket." --key ".$f_name." ".(strlen($this->region)?'--region '.$this->region:'')." ".$tmpfile." 2>/dev/null";
+				//echo $cmd."\n";
+				exec( $cmd, $f_datas );
+				$f_datas = trim( implode( "\n", $f_datas ) );
+
 				if( $this->download ) {
 					$dir = rtrim( dirname($f_name), ' /' );
 					if( $dir!='' && $dir!='.' && $dir!='./' ) {
 						$this->_mkdir( $this->destination.'/'.$dir );
 					}
-					$dst = $this->destination.'/'.$f_name;
-					file_put_contents( $dst, $f_datas );
 				}
-				$cnt++;
-			} elseif( $this->verbosity >= 2 ) {
-				Utils::_print( $f_url."\n", 'dark_grey' );
+	
+				if( strlen($f_datas) )
+				{
+					if( $this->verbosity >= 1 ) {
+						Utils::_print( $f_url." (".Utils::format_bytes((int)$f_size).")\n" );
+					}
+					if( $this->download ) {
+						$dst = $this->destination.'/'.$f_name;
+						rename( $tmpfile, $dst );
+					}
+					$cnt++;
+				} elseif( $this->verbosity >= 2 ) {
+					Utils::_print( $f_url."\n", 'dark_grey' );
+				}
+				
+				@unlink( $tmpfile );
 			}
 		}
+		while( $s_token );
 		
 		return [$total,$cnt];
 	}
@@ -203,6 +240,9 @@ class BucketExtractor
 		{
 			$f_name = (string)$content->Key;
 			if( substr($f_name,-1) == '/' ) {
+				if( $this->download ) {
+					$this->_mkdir( $this->destination.'/'.$f_name );
+				}
 				continue;
 			}
 			
@@ -224,16 +264,19 @@ class BucketExtractor
 			$f_datas = curl_exec( $c );
 			$t_info = curl_getinfo( $c );
 
+			if( $this->download ) {
+				$dir = rtrim( dirname($f_name), ' /' );
+				if( $dir!='' && $dir!='.' && $dir!='./' ) {
+					$this->_mkdir( $this->destination.'/'.$dir );
+				}
+			}
+
 			if( $t_info['http_code'] == 200 )
 			{
 				if( $this->verbosity >= 1 ) {
 					Utils::_print( $f_url." (".Utils::format_bytes((int)$content->Size).")\n" );
 				}
 				if( $this->download ) {
-					$dir = rtrim( dirname($f_name), ' /' );
-					if( $dir!='' && $dir!='.' && $dir!='./' ) {
-						$this->_mkdir( $this->destination.'/'.$dir );
-					}
 					$dst = $this->destination.'/'.$f_name;
 					file_put_contents( $dst, $f_datas );
 				}
