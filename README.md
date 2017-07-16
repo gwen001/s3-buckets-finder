@@ -52,6 +52,7 @@ Examples:
 # Requirements
 ```
 apt-get install awscli
+aws configure
 ```
 
 I don't believe in license.  
