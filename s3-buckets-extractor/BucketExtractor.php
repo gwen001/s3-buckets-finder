@@ -107,7 +107,7 @@ class BucketExtractor
 	{
 		echo 'Checking '.$this->bucket_url." via ".self::TECHNIK_WEB." (https)\n";
         $this->datas = @file_get_contents( $this->bucket_url );
-        $this->datas = null;
+        //$this->datas = null;
 
         if( $this->datas ) {
             $this->technik = self::TECHNIK_WEB;
@@ -115,7 +115,7 @@ class BucketExtractor
         	$this->bucket_url = str_replace( 'https', 'http', $this->bucket_url );
 			echo 'Checking '.$this->bucket_url." via ".self::TECHNIK_WEB." (http)\n";
 	        $this->datas = @file_get_contents( $this->bucket_url );
-	        $this->datas = null;
+	        //$this->datas = null;
 			
 	        if( $this->datas ) {
 	            $this->technik = self::TECHNIK_WEB;
