@@ -487,7 +487,7 @@ class BucketBruteForcer
 			}
 		}
 		
-		if( $this->detect_region )
+		if( $e && $this->detect_region )
 		{
 			$region = $bucket->detectRegion();
 
