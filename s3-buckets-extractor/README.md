@@ -28,4 +28,4 @@ aws configure
 I don't believe in license.  
 You can do want you want with this program.  
 
-![s3 buckets extractor example] (https://raw.githubusercontent.com/gwen001/s3-buckets-extractor/master/example-ex.png)
+<img src="https://raw.githubusercontent.com/gwen001/s3-buckets-finder/master/s3-buckets-extractor/example-ex.png" alt="s3 buckets extractor example">
