@@ -55,7 +55,8 @@ apt-get install awscli
 aws configure
 ```
 
+<img src="https://raw.githubusercontent.com/gwen001/s3-buckets-finder/master/example-bf.png" alt="s3 buckets bruteforcer example">
+<br><br>
+
 I don't believe in license.  
 You can do want you want with this program.  
-
-<img src="https://raw.githubusercontent.com/gwen001/s3-buckets-finder/master/example-bf.png" alt="s3 buckets bruteforcer example">
