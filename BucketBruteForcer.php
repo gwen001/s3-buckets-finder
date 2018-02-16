@@ -24,7 +24,7 @@ class BucketBruteForcer
 		'ap-south-1', 'ap-northeast-2', 'ap-southeast-1', 'ap-southeast-2', 'ap-northeast-1',
 		'ca-central-1', 'sa-east-1',
 	];
-	const AWS_VALID_HTTP_CODE = [200,301,403];
+	const AWS_VALID_HTTP_CODE = [200,301,307,403];
 	
 	private $t_bucket = [];
 	private $t_prefix = [];
@@ -217,6 +217,8 @@ class BucketBruteForcer
 	// Thousand Thanks!
 	public function signal_handler( $signal, $pid=null, $status=null )
 	{
+		$pid = (int)$pid;
+		
 		// If no pid is provided, Let's wait to figure out which child process ended
 		if( !$pid ){
 			$pid = pcntl_waitpid( -1, $status, WNOHANG );
@@ -319,7 +321,7 @@ class BucketBruteForcer
 		$n_bucket = count( $t_buckets );
 		//var_dump($n_bucket);
 		//echo $n_bucket." buckets to test.\n\n";
-				
+		
 		for( $current=0 ; $current<$n_bucket ; )
 		{
 			if( $this->n_child < $this->max_child )
@@ -538,7 +540,7 @@ class BucketBruteForcer
 			
 			echo "\n";
 		}
-				
+		
 		$result = ob_get_contents();
 		ob_end_clean();
 		

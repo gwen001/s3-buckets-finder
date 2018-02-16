@@ -175,53 +175,56 @@ class BucketExtractor
 				$s_token = null;
 			}
 			
-			foreach( $t_datas['Contents'] as $o )
+			if( isset($t_datas['Contents']) && is_array($t_datas['Contents']) && count($t_datas['Contents']) )
 			{
-				$f_name = $o['Key'];
-				if( substr($f_name,-1) == '/' || preg_match('#\$folder\$#',$f_name) ) {
-					if( $this->download ) {
-						$this->_mkdir( $this->destination.'/'.str_replace('_$folder$','',$f_name) );
-					}
-					continue;
-				}
-				
-				$ext = $this->_extension( basename($f_name) );
-				if( in_array($ext,$this->ignore) ) {
-					continue;
-				}
-				
-				$total++;
-				$f_size = $o['Size'];
-				$f_url = $this->bucket_url.'/'.$f_name;
-				
-				$tmpfile = tempnam( '/tmp/', 's3bf-' );
-				$cmd = "aws s3api get-object --bucket ".$this->bucket." --key ".$f_name." ".(strlen($this->region)?'--region '.$this->region:'')." ".$tmpfile." 2>/dev/null";
-				//echo $cmd."\n";
-				exec( $cmd, $f_datas );
-				$f_datas = trim( implode( "\n", $f_datas ) );
-
-				if( $this->download ) {
-					$dir = rtrim( dirname($f_name), ' /' );
-					if( $dir!='' && $dir!='.' && $dir!='./' ) {
-						$this->_mkdir( $this->destination.'/'.$dir );
-					}
-				}
-	
-				if( strlen($f_datas) )
+				foreach( $t_datas['Contents'] as $o )
 				{
-					if( $this->verbosity >= 1 ) {
-						Utils::_print( $f_url." (".Utils::format_bytes((int)$f_size).")\n" );
+					$f_name = $o['Key'];
+					if( substr($f_name,-1) == '/' || preg_match('#\$folder\$#',$f_name) ) {
+						if( $this->download ) {
+							$this->_mkdir( $this->destination.'/'.str_replace('_$folder$','',$f_name) );
+						}
+						continue;
 					}
+					
+					$ext = $this->_extension( basename($f_name) );
+					if( in_array($ext,$this->ignore) ) {
+						continue;
+					}
+					
+					$total++;
+					$f_size = $o['Size'];
+					$f_url = $this->bucket_url.'/'.$f_name;
+					
+					$tmpfile = tempnam( '/tmp/', 's3bf-' );
+					$cmd = "aws s3api get-object --bucket ".$this->bucket." --key ".$f_name." ".(strlen($this->region)?'--region '.$this->region:'')." ".$tmpfile." 2>/dev/null";
+					//echo $cmd."\n";
+					exec( $cmd, $f_datas );
+					$f_datas = trim( implode( "\n", $f_datas ) );
+	
 					if( $this->download ) {
-						$dst = $this->destination.'/'.$f_name;
-						rename( $tmpfile, $dst );
+						$dir = rtrim( dirname($f_name), ' /' );
+						if( $dir!='' && $dir!='.' && $dir!='./' ) {
+							$this->_mkdir( $this->destination.'/'.$dir );
+						}
 					}
-					$cnt++;
-				} elseif( $this->verbosity >= 2 ) {
-					Utils::_print( $f_url."\n", 'dark_grey' );
+		
+					if( strlen($f_datas) )
+					{
+						if( $this->verbosity >= 1 ) {
+							Utils::_print( $f_url." (".Utils::format_bytes((int)$f_size).")\n" );
+						}
+						if( $this->download ) {
+							$dst = $this->destination.'/'.$f_name;
+							rename( $tmpfile, $dst );
+						}
+						$cnt++;
+					} elseif( $this->verbosity >= 2 ) {
+						Utils::_print( $f_url."\n", 'dark_grey' );
+					}
+					
+					@unlink( $tmpfile );
 				}
-				
-				@unlink( $tmpfile );
 			}
 		}
 		while( $s_token );

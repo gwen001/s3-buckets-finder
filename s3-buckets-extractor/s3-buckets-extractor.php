@@ -62,7 +62,7 @@ set_time_limit( 0 );
 	}
 
 	if( !$extractor->getBucket() ) {
-		Utils::help( 'Domain not found' );
+		Utils::help( 'Bucket not found' );
 	}
 }
 // ---
