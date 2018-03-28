@@ -129,35 +129,6 @@ class Bucket
 		return false;
 	}
 	
-	
-	// 0: success
-	// 1: failed
-	// 2: unknown
-	public function canSetAcl( $redo=false )
-	{
-		if( is_null($this->canSetACL) || $redo )
-		{
-			$cmd = "aws s3api put-bucket-acl --grant-full-control 'uri=\"http://acs.amazonaws.com/groups/global/AllUsers\"' --bucket ".$this->name." ".(strlen($this->region)?'--region '.$this->region:'')." 2>&1";
-			//echo $cmd."\n";
-			exec( $cmd, $output );
-			$output = strtolower( trim( implode("\n",$output) ) );
-			//var_dump( $output );
-			
-			if( preg_match('#A client error|AllAccessDisabled|AllAccessDisabled|AccessDenied#i',$output) ) {
-				$this->canSetACL = BucketBruteForcer::TEST_FAILED;
-			}
-			elseif( preg_match('#An error occurred#i',$output) ) {
-				$this->canSetACL = BucketBruteForcer::TEST_UNKNOW;
-			}
-			else {
-				$this->canSetACL = BucketBruteForcer::TEST_SUCCESS;
-			}
-		}
-		
-		return $this->canSetACL;
-	}
-	
-	
 	public function canGetAcl( $redo=false )
 	{
 		if( is_null($this->canGetACL) || $redo )
