@@ -52,12 +52,12 @@ Examples:
 
 # Requirements
 
-_Amazon__
+**Amazon**
 ```
 apt-get install awscli
 aws configure
 ```
-_Google__
+**Google**
 https://cloud.google.com/storage/docs/gsutil_install
 
 
