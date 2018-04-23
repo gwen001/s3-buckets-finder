@@ -52,16 +52,16 @@ Examples:
 
 # Requirements
 
-**Amazon**
+**Amazon S3:**
 ```
 apt-get install awscli
 aws configure
 ```
-**Google**
+**Google Cloud:**
 https://cloud.google.com/storage/docs/gsutil_install
 
 
-
+<br><br>
 <img src="https://raw.githubusercontent.com/gwen001/s3-buckets-finder/master/example-bf.png" alt="s3 buckets bruteforcer example">
 <br><br>
 
