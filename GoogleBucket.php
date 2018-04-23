@@ -50,21 +50,21 @@ class GoogleBucket
 	}
 	public function setRegion( $v ) {
 		$this->region = trim( $v );
-		$url = str_replace( 's3.', 's3-'.$this->region.'.', $this->url );
+		//$url = str_replace( 's3.', 's3-'.$this->region.'.', $this->url );
 		return true;
 	}
 	
 	
 	public function detectRegion()
 	{
-		foreach( self::T_REGION as $r )
+		/*foreach( self::T_REGION as $r )
 		{
 			$this->setRegion( $r );
 			
 			if( $this->canList(true) != 2 ) {
 				return $r;
 			}
-		}
+		}*/
 		
 		return false;
 	}

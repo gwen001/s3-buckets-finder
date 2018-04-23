@@ -51,10 +51,16 @@ Examples:
 ```
 
 # Requirements
+
+_Amazon__
 ```
 apt-get install awscli
 aws configure
 ```
+_Google__
+https://cloud.google.com/storage/docs/gsutil_install
+
+
 
 <img src="https://raw.githubusercontent.com/gwen001/s3-buckets-finder/master/example-bf.png" alt="s3 buckets bruteforcer example">
 <br><br>

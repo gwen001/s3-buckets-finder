@@ -518,7 +518,7 @@ class BucketBruteForcer
 				echo 'Region detected: '.$region."\n";
 				$bucket->setRegion( $region );
 			} else {
-				echo "Region detected: not found!";
+				echo "Region detected: not found!\n";
 				$bucket->setRegion( null );
 			}
 		}
