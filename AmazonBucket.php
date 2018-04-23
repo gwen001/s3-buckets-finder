@@ -60,7 +60,7 @@ class AmazonBucket
 		{
 			$this->setRegion( $r );
 			
-			if( $this->canList(true) != 2 ) {
+			if( $this->canList(true) != BucketBruteForcer::TEST_UNKNOW ) {
 				return $r;
 			}
 		}

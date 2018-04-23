@@ -9,7 +9,7 @@ Options:
 	--bucket	single bucket name or listing file
 	--detect-region	Amazon only, try to automatically detect the region of the bucket
 	--force-recurse	even if the bucket doesn't exist, the max-depth option will be applied (use this option at your own risk)
-	--glue		characters used as a separator when concatenate all elements, default are: dash, dot and underscore
+	--glue		characters used as a separator when concatenate all elements, default are: none, dash, dot and underscore
 	-h, --help	print this help
 	--list		do no perform any test, simply list the generated permutations
 	--max-depth	max depth of recursion, if a bucket is found, another level will be added (permutations are applied), default=1, ex:
