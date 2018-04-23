@@ -17,89 +17,107 @@ set_time_limit( 0 );
 
 // parse command line
 {
+	$options = [
+		'bucket:',
+		'detect-region',
+		'force-recurse',
+		'google',
+		'glue:',
+		'h',
+		'help',
+		'list',
+		'max-depth:',
+		'no-color',
+		'perform:',
+		'permut:',
+		'prefix:',
+		'provider:',
+		'region:',
+		'suffix:',
+		'thread:',
+		'verbosity',
+	];
+	$t_options = getopt( '', $options );
+	//var_dump( $t_options );
+
 	$bruteforcer = new BucketBruteForcer();
 
 	$argc = $_SERVER['argc'] - 1;
 
-	for( $i=1; $i<=$argc; $i++ ) {
-		switch( $_SERVER['argv'][$i] ) {
-			case '--bucket':
-				$bruteforcer->setBucket( $_SERVER['argv'][$i+1] );
-				$i++;
+	foreach( $t_options as $k=>$v )
+	{
+		switch( $k )
+		{
+			case 'bucket':
+				$bruteforcer->setBucket( $v );
 				break;
 
-			case '--detect-region':
+			case 'detect-region':
 				$bruteforcer->detectRegion();
 				break;
 			
-			case '--force-recurse':
+			case 'force-recurse':
 				$bruteforcer->forceRecurse();
 				break;
 				
-			case '--glue':
-				$bruteforcer->setGlue( $_SERVER['argv'][$i+1] );
-				$i++;
+			case 'glue':
+				$bruteforcer->setGlue( $v );
 				break;
 				
 			case '-h':
-			case '--help':
+			case 'help':
 				Utils::help();
 				break;
 
-			case '--list':
+			case 'list':
 				$bruteforcer->disableTest();
 				break;
 				
-			case '--max-depth':
-				$bruteforcer->setMaxDepth( $_SERVER['argv'][$i+1] );
-				$i++;
+			case 'max-depth':
+				$bruteforcer->setMaxDepth( $v );
 				break;
 				
-			case '--no-color':
+			case 'no-color':
 				$bruteforcer->disableColor();
-				//$i++;
 				break;
 				
-			case '--perform':
-				$bruteforcer->setTests( $_SERVER['argv'][$i+1] );
-				$i++;
+			case 'perform':
+				$bruteforcer->setTests( $v );
 				break;
 				
-			case '--permut':
-				$bruteforcer->setPermutation( $_SERVER['argv'][$i+1] );
-				$i++;
+			case 'permut':
+				$bruteforcer->setPermutation( $v );
 				break;
 				
-			case '--prefix':
-				$bruteforcer->setPrefix( $_SERVER['argv'][$i+1] );
-				$i++;
+			case 'prefix':
+				$bruteforcer->setPrefix( $v );
 				break;
 				
-			case '--region':
-				if( !$bruteforcer->setRegion($_SERVER['argv'][$i+1]) ) {
-					Utils::help( 'Invalid region "'.$_SERVER['argv'][$i+1].'" ' );
+			case 'provider':
+				$bruteforcer->setProvider( $v );
+				break;
+				
+			case 'region':
+				if( !$bruteforcer->setRegion($v) ) {
+					Utils::help( 'Invalid region "'.$v.'" ' );
 				}
-				$i++;
 				break;
 				
-			case '--suffix':
-				$bruteforcer->setSuffix( $_SERVER['argv'][$i+1] );
-				$i++;
+			case 'suffix':
+				$bruteforcer->setSuffix( $v );
 				break;
 				
-			case '--thread':
-				$bruteforcer->setMaxChild( $_SERVER['argv'][$i+1] );
-				$i++;
+			case 'thread':
+				$bruteforcer->setMaxChild( $v );
 				break;
 				
 			case '-v':
-			case '--verbosity':
-				$bruteforcer->setVerbosity( (int)$_SERVER['argv'][$i+1] );
-				$i++;
+			case 'verbosity':
+				$bruteforcer->setVerbosity( (int)$v );
 				break;
 
 			default:
-				Utils::help( 'Unknown option: '.$_SERVER['argv'][$i] );
+				Utils::help( 'Unknown option: '.$k );
 		}
 	}
 
@@ -118,5 +136,3 @@ set_time_limit( 0 );
 
 
 exit();
-
-?>

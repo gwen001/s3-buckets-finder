@@ -7,7 +7,7 @@ Usage: php s3-buckets-bruteforcer.php [OPTIONS] --bucket <bucket>
 
 Options:
 	--bucket	single bucket name or listing file
-	--detect-region	try to automatically detect the region of the bucket (not implemented yet)
+	--detect-region	Amazon only, try to automatically detect the region of the bucket
 	--force-recurse	even if the bucket doesn't exist, the max-depth option will be applied (use this option at your own risk)
 	--glue		characters used as a separator when concatenate all elements, default are: dot, dash and underscore
 	-h, --help	print this help
@@ -28,7 +28,8 @@ Options:
 				2: permutation applied only on the bucket name (a.b.c, b.c.a, ...)
 				3: each elements will be separately permuted, then glogal permutation
 	--prefix	single prefix or listing file
-	--region	set the region (overwrite the option detect-region), value can be:
+	--provider	can be: Amazon or Google
+	--region	Amazon only, set the region (overwrite the option detect-region), value can be:
 				us-east-1 us-east-2 us-west-1 us-west-2
 				ap-south-1 ap-southeast-1 ap-southeast-2 ap-northeast-1 ap-northeast-2
 				eu-central-1 eu-west-1 eu-west-2

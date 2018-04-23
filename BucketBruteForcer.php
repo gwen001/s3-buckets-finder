@@ -8,23 +8,27 @@
 
 class BucketBruteForcer
 {
+	const REQUEST_TIMEOUT = 5;
+	const T_USER_AGENT = [
+		'Mozilla/5.0 (X11; Linux x86_64; rv:31.0) Gecko/20100101 Firefox/31.0 Iceweasel/31.7.0',
+		'Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)',
+		'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36',
+		'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.75.14 (KHTML, like Gecko) Version/7.0.3 Safari/7046A194A',
+		'Mozilla/5.0 (Windows NT 6.3; rv:36.0) Gecko/20100101 Firefox/36.0',
+		'Opera/9.80 (Windows NT 6.0) Presto/2.12.388 Version/12.14',
+		'Mozilla/5.0 (X11; Linux 3.5.4-1-ARCH i686; es) KHTML/4.9.1 (like Gecko) Konqueror/4.9',
+		'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:52.0) Gecko/20100101 Firefox/52.0',
+	];
+	const N_USER_AGENT = 7;
+	
+	const T_PROVIDER = [ 'Amazon', 'Google' ];
+	const DEFAULT_PROVIDER = 'Amazon';
+	
 	const WORD_SEPARATOR = '__SEP__';
 	
-	const TEMPFILE_DIR = '/tmp/';
-	const TEMPFILE_PREFIX = 's3bf-';
-	
-	const TEST_SUCCESS = 0;
-	const TEST_FAILED  = 1;
-	const TEST_UNKNOW  = 2;
-	
-	const AWS_URL = 'https://s3.amazonaws.com/';
-	const AWS_REGION = [
-		'eu-west-1', 'eu-west-2', 'eu-central-1',
-		'us-east-1', 'us-east-2', 'us-west-1', 'us-west-2',
-		'ap-south-1', 'ap-northeast-2', 'ap-southeast-1', 'ap-southeast-2', 'ap-northeast-1',
-		'ca-central-1', 'sa-east-1',
-	];
-	const AWS_VALID_HTTP_CODE = [200,301,307,403];
+	const TEST_UNKNOW  = -1;
+	const TEST_FAILED  = 0;
+	const TEST_SUCCESS = 1;
 	
 	private $t_bucket = [];
 	private $t_prefix = [];
@@ -50,13 +54,15 @@ class BucketBruteForcer
 	private $verbosity = 0;
 	
 	private $detect_region = false;
-
+	
+	private $provider = self::DEFAULT_PROVIDER;
+	private $bucket_class = '';
 	
 	private $n_child = 0;
 	private $max_child = 5;
 	private $loop_sleep = 100000;
-	private $aws_min_sleep = 1000;
-	private $aws_max_sleep = 50000;
+	private $random_min_sleep = 1000;
+	private $random_max_sleep = 50000;
 	private $t_process = [];
 	private $t_signal_queue = [];
 	private $cnt_notice = 500;
@@ -142,10 +148,23 @@ class BucketBruteForcer
 	}
 	public function setRegion( $v ) {
 		$v = trim( $v );
-		if( !in_array($v,self::AWS_REGION) ) {
+		if( !in_array($v,AmazonBucket::T_REGION) ) {
 			return false;
 		}
 		$this->region = $v;
+		return true;
+	}
+
+
+	public function getProvider() {
+		return $this->provider;
+	}
+	public function setProvider( $v ) {
+		$v = ucfirst( strtolower(trim($v)) );
+		if( !in_array($v,self::T_PROVIDER) ) {
+			Utils::help( 'Provider not supported' );
+		}
+		$this->provider = $v;
 		return true;
 	}
 
@@ -252,6 +271,8 @@ class BucketBruteForcer
 	
 	private function init()
 	{
+		$this->bucket_class = $this->provider.'Bucket';
+		
 		$this->t_prefix = array_map( array($this,'cleanString'), $this->t_prefix );
 		$this->t_suffix = array_map( array($this,'cleanString'), $this->t_suffix );
 		$this->t_bucket = array_map( array($this,'cleanString'), $this->t_bucket );
@@ -341,7 +362,7 @@ class BucketBruteForcer
 			        }
 				} else {
 					// child process
-					usleep( rand($this->aws_min_sleep,$this->aws_max_sleep) );
+					usleep( rand($this->random_min_sleep,$this->random_max_sleep) );
 					$this->testBucket( $t_buckets[$current] );
 					exit( 0 );
 				}
@@ -472,7 +493,7 @@ class BucketBruteForcer
 	{
 		ob_start();
 		
-		$bucket = new Bucket();
+		$bucket = new $this->bucket_class();
 		$bucket->setName( $bucket_name );
 		$bucket->setRegion( $this->region );
 		
