@@ -34,7 +34,7 @@ class BucketBruteForcer
 	private $t_prefix = [];
 	private $t_suffix = [];
 	
-	private $t_glue = [ '', '.', '-', '_' ];
+	private $t_glue = [ '', '-', '.', '_' ];
 	
 	private $tests = 'sglhw';
 	
