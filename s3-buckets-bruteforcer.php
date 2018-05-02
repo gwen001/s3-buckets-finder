@@ -35,7 +35,7 @@ set_time_limit( 0 );
 		'region:',
 		'suffix:',
 		'thread:',
-		'verbosity',
+		'verbosity:',
 	];
 	$t_options = getopt( '', $options );
 	//var_dump( $t_options );

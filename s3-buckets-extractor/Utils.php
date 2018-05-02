@@ -32,9 +32,9 @@ class Utils
 
 	public static function help( $error='' )
 	{
-		if( is_file('README.md') ) {
-			$help = file_get_contents( 'README.md' )."\n";
-			preg_match_all( '#```(.*)```#s', $help, $matches );
+		if( is_file(__DIR__.'/README.md') ) {
+			$help = file_get_contents( __DIR__.'/README.md' )."\n";
+			preg_match_all( '#```(.*?)```#s', $help, $matches );
 			if( count($matches[1]) ) {
 				echo trim($matches[1][0])."\n\n";
 			}
