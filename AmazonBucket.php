@@ -8,11 +8,11 @@
 
 class AmazonBucket
 {
-	const BASE_URL = 'https://__BUCKET-NAME__.s3.amazonaws.com/';
+	const BASE_URL = '__BUCKET-NAME__.s3.amazonaws.com';
 	const T_REGION = [
-		'eu-west-1', 'eu-west-2', 'eu-central-1',
+		'eu-west-1', 'eu-west-2', 'eu-west-3', 'eu-central-1',
 		'us-east-1', 'us-east-2', 'us-west-1', 'us-west-2',
-		'ap-south-1', 'ap-northeast-2', 'ap-southeast-1', 'ap-southeast-2', 'ap-northeast-1',
+		'ap-south-1', 'ap-southeast-1', 'ap-southeast-2', 'ap-northeast-1', 'ap-northeast-2', 'ap-northeast-3',
 		'ca-central-1', 'sa-east-1',
 	];
 	const VALID_HTTP_CODE = [200,301,307,403];
@@ -20,6 +20,7 @@ class AmazonBucket
 	public $name = '';
 	public $url = '';
 	public $region = null;
+	public $ssl = null;
 	
 	private $exist = null;
 	private $canSetACL = null;
@@ -29,8 +30,18 @@ class AmazonBucket
 	private $canWrite = null;
 	
 	
-	public function __construct() {
-		$this->url = self::BASE_URL;
+	public function getUrl( $https=true )
+	{
+		$this->ssl = $https;
+
+		$url = ($https ? 'https' : 'http') . '://';
+		$url .= str_replace( '__BUCKET-NAME__', $this->name, self::BASE_URL );
+		if( strlen($this->region) ) {
+			$url = str_replace( 's3.amazonaws.com', 's3-'.$this->region.'.amazonaws.com', $url );
+		}
+		//var_dump($url);
+		
+		return $url;
 	}
 	
 	
@@ -40,6 +51,7 @@ class AmazonBucket
 	public function setName( $v ) {
 		$this->name = trim( $v );
 		$this->url = str_replace( '__BUCKET-NAME__', $this->name, $this->url );
+		$this->_url = $this->url;
 		return true;
 	}
 	
@@ -48,21 +60,30 @@ class AmazonBucket
 		return $this->region;
 	}
 	public function setRegion( $v ) {
-		$this->region = trim( $v );
-		$url = str_replace( 's3.', 's3-'.$this->region.'.', $this->url );
+		$r = trim( $v );
+		if( strlen($r) && !in_array($r,self::T_REGION) ) {
+			return false;
+		}
+		$this->region = $r;
 		return true;
 	}
 	
 	
 	public function detectRegion()
 	{
-		foreach( self::T_REGION as $r )
+		foreach( self::T_REGION as $region )
 		{
-			$this->setRegion( $r );
+			$this->setRegion( $region );
+			$this->canListHTTP( true, $r );
 			
-			if( $this->canList(true) != BucketBruteForcer::TEST_UNKNOW ) {
-				return $r;
+			if( stristr($r,'<Code>PermanentRedirect</Code>') && stristr($r,'The bucket you are attempting to access must be addressed using the specified endpoint') ) {
+				$m = preg_match( '#<Endpoint>.*s3(.*).amazonaws.com</Endpoint>#', $r, $matches );
+				//var_dump( $matches );
+				$region = trim( $matches[1], '-.' );
 			}
+			
+			//var_dump( $region );
+			return $region;
 		}
 		
 		return false;
@@ -74,11 +95,12 @@ class AmazonBucket
 		if( is_null($this->exist) || $redo )
 		{
 			$c = curl_init();
-			curl_setopt( $c, CURLOPT_URL, $this->url );
+			curl_setopt( $c, CURLOPT_URL, $this->getUrl() );
 			curl_setopt( $c, CURLOPT_CONNECTTIMEOUT, BucketBruteForcer::REQUEST_TIMEOUT );
 			curl_setopt( $c, CURLOPT_USERAGENT, BucketBruteForcer::T_USER_AGENT[rand(0,BucketBruteForcer::N_USER_AGENT)] );
 			//curl_setopt( $c, CURLOPT_FOLLOWLOCATION, true );
 			curl_setopt( $c, CURLOPT_RETURNTRANSFER, true );
+			curl_setopt( $c, CURLOPT_NOBODY, true );
 			//curl_setopt( $c, CURLOPT_SSL_VERIFYPEER, false );
 			//curl_setopt( $c, CURLOPT_HEADER, true );
 			$r = curl_exec( $c );
@@ -91,14 +113,13 @@ class AmazonBucket
 			
 			if( $http_code == 0 )
 			{
-				$this->url = str_replace( 'https://', 'http://', $this->url );
-				
 				$c = curl_init();
-				curl_setopt( $c, CURLOPT_URL, $this->url );
+				curl_setopt( $c, CURLOPT_URL, $this->getUrl(false) );
 				curl_setopt( $c, CURLOPT_CONNECTTIMEOUT, BucketBruteForcer::REQUEST_TIMEOUT );
 				curl_setopt( $c, CURLOPT_USERAGENT, BucketBruteForcer::T_USER_AGENT[rand(0,BucketBruteForcer::N_USER_AGENT)] );
 				//curl_setopt( $c, CURLOPT_FOLLOWLOCATION, true );
 				curl_setopt( $c, CURLOPT_RETURNTRANSFER, true );
+				curl_setopt( $c, CURLOPT_NOBODY, true );
 				//curl_setopt( $c, CURLOPT_SSL_VERIFYPEER, false );
 				//curl_setopt( $c, CURLOPT_HEADER, true );
 				$r = curl_exec( $c );
@@ -130,7 +151,7 @@ class AmazonBucket
 			if( preg_match('#A client error|AllAccessDisabled|AllAccessDisabled|AccessDenied#i',$output) ) {
 				$this->canSetACL = BucketBruteForcer::TEST_FAILED;
 			}
-			elseif( preg_match('#An error occurred#i',$output) ) {
+			elseif( preg_match('#An error occurred|object has no attribute#i',$output) ) {
 				$this->canSetACL = BucketBruteForcer::TEST_UNKNOW;
 			}
 			else {
@@ -155,7 +176,7 @@ class AmazonBucket
 			if( preg_match('#A client error|AllAccessDisabled|AllAccessDisabled|AccessDenied#i',$output) ) {
 				$this->canGetACL = BucketBruteForcer::TEST_FAILED;
 			}
-			elseif( preg_match('#An error occurred#i',$output) ) {
+			elseif( preg_match('#An error occurred|object has no attribute#i',$output) ) {
 				$this->canGetACL = BucketBruteForcer::TEST_UNKNOW;
 			}
 			else {
@@ -180,7 +201,7 @@ class AmazonBucket
 			if( preg_match('#A client error|AllAccessDisabled|AllAccessDisabled|AccessDenied#i',$output) ) {
 				$this->canList = BucketBruteForcer::TEST_FAILED;
 			}
-			elseif( preg_match('#An error occurred#i',$output) ) {
+			elseif( preg_match('#An error occurred|object has no attribute#i',$output) ) {
 				$this->canList = BucketBruteForcer::TEST_UNKNOW;
 			}
 			else {
@@ -192,12 +213,12 @@ class AmazonBucket
 	}
 	
 	
-	public function canListHTTP( $redo=false )
+	public function canListHTTP( $redo=false, &$r=null )
 	{
 		if( is_null($this->canListHTTP) || $redo )
 		{
 			$c = curl_init();
-			curl_setopt( $c, CURLOPT_URL, $this->url );
+			curl_setopt( $c, CURLOPT_URL, $this->getUrl($this->ssl) );
 			curl_setopt( $c, CURLOPT_CONNECTTIMEOUT, BucketBruteForcer::REQUEST_TIMEOUT );
 			//curl_setopt( $c, CURLOPT_FOLLOWLOCATION, true );
 			curl_setopt( $c, CURLOPT_USERAGENT, BucketBruteForcer::T_USER_AGENT[rand(0,BucketBruteForcer::N_USER_AGENT)] );
@@ -211,6 +232,7 @@ class AmazonBucket
 			curl_close( $c );
 			
 			$http_code = $t_info['http_code'];
+			//var_dump($http_code);
 			
 			if( $http_code == 200 ) {
 				$this->canListHTTP = BucketBruteForcer::TEST_SUCCESS;
@@ -238,7 +260,7 @@ class AmazonBucket
 			if( preg_match('#A client error|upload failed|AllAccessDisabled|AllAccessDisabled|AccessDenied#i',$output) ) {
 				$this->canWrite = BucketBruteForcer::TEST_FAILED;
 			}
-			elseif( preg_match('#An error occurred#i',$output) ) {
+			elseif( preg_match('#An error occurred|object has no attribute#i',$output) ) {
 				$this->canWrite = BucketBruteForcer::TEST_UNKNOW;
 			}
 			else {

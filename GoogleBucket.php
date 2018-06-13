@@ -8,7 +8,7 @@
 
 class GoogleBucket
 {
-	const BASE_URL = 'https://__BUCKET-NAME__.storage.googleapis.com/';
+	const BASE_URL = '__BUCKET-NAME__.storage.googleapis.com';
 	const T_REGION = [ //todo
 		'eu-west-1', 'eu-west-2', 'eu-central-1',
 		'us-east-1', 'us-east-2', 'us-west-1', 'us-west-2',
@@ -21,6 +21,7 @@ class GoogleBucket
 	public $name = '';
 	public $url = '';
 	public $region = null;
+	public $ssl = null;
 	
 	private $exist = null;
 	private $canSetACL = null;
@@ -30,8 +31,17 @@ class GoogleBucket
 	private $canWrite = null;
 	
 	
-	public function __construct() {
-		$this->url = self::BASE_URL;
+	public function getUrl( $https=true )
+	{
+		$this->ssl = $https;
+		
+		$url = ($https ? 'https' : 'http') . '://';
+		$url .= str_replace( '__BUCKET-NAME__', $this->name, self::BASE_URL );
+		//if( $this->region ) {
+		//	$url = str_replace( '.digitaloceanspaces.com', '.'.$this->region.'.digitaloceanspaces.com', $url );
+		//}
+				
+		return $url;
 	}
 	
 	
@@ -41,6 +51,7 @@ class GoogleBucket
 	public function setName( $v ) {
 		$this->name = trim( $v );
 		$this->url = str_replace( '__BUCKET-NAME__', $this->name, $this->url );
+		$this->_url = $this->url;
 		return true;
 	}
 	
@@ -49,8 +60,11 @@ class GoogleBucket
 		return $this->region;
 	}
 	public function setRegion( $v ) {
-		$this->region = trim( $v );
-		//$url = str_replace( 's3.', 's3-'.$this->region.'.', $this->url );
+		$r = trim( $v );
+		if( !in_array($v,self::T_REGION) ) {
+			return false;
+		}
+		$this->region = $r;
 		return true;
 	}
 	
@@ -75,11 +89,12 @@ class GoogleBucket
 		if( is_null($this->exist) || $redo )
 		{
 			$c = curl_init();
-			curl_setopt( $c, CURLOPT_URL, $this->url );
+			curl_setopt( $c, CURLOPT_URL, $this->getUrl() );
 			curl_setopt( $c, CURLOPT_CONNECTTIMEOUT, BucketBruteForcer::REQUEST_TIMEOUT );
 			curl_setopt( $c, CURLOPT_USERAGENT, BucketBruteForcer::T_USER_AGENT[rand(0,BucketBruteForcer::N_USER_AGENT)] );
 			//curl_setopt( $c, CURLOPT_FOLLOWLOCATION, true );
 			curl_setopt( $c, CURLOPT_RETURNTRANSFER, true );
+			curl_setopt( $c, CURLOPT_NOBODY, true );
 			//curl_setopt( $c, CURLOPT_SSL_VERIFYPEER, false );
 			//curl_setopt( $c, CURLOPT_HEADER, true );
 			$r = curl_exec( $c );
@@ -92,14 +107,13 @@ class GoogleBucket
 			
 			if( $http_code == 0 )
 			{
-				$this->url = str_replace( 'https://', 'http://', $this->url );
-				
 				$c = curl_init();
-				curl_setopt( $c, CURLOPT_URL, $this->url );
+				curl_setopt( $c, CURLOPT_URL, $this->getUrl(false) );
 				curl_setopt( $c, CURLOPT_CONNECTTIMEOUT, BucketBruteForcer::REQUEST_TIMEOUT );
 				curl_setopt( $c, CURLOPT_USERAGENT, BucketBruteForcer::T_USER_AGENT[rand(0,BucketBruteForcer::N_USER_AGENT)] );
 				//curl_setopt( $c, CURLOPT_FOLLOWLOCATION, true );
 				curl_setopt( $c, CURLOPT_RETURNTRANSFER, true );
+				curl_setopt( $c, CURLOPT_NOBODY, true );
 				//curl_setopt( $c, CURLOPT_SSL_VERIFYPEER, false );
 				//curl_setopt( $c, CURLOPT_HEADER, true );
 				$r = curl_exec( $c );
@@ -189,7 +203,7 @@ class GoogleBucket
 		if( is_null($this->canListHTTP) || $redo )
 		{
 			$c = curl_init();
-			curl_setopt( $c, CURLOPT_URL, $this->url );
+			curl_setopt( $c, CURLOPT_URL, $this->getUrl($this->ssl) );
 			curl_setopt( $c, CURLOPT_CONNECTTIMEOUT, BucketBruteForcer::REQUEST_TIMEOUT );
 			//curl_setopt( $c, CURLOPT_FOLLOWLOCATION, true );
 			curl_setopt( $c, CURLOPT_USERAGENT, BucketBruteForcer::T_USER_AGENT[rand(0,BucketBruteForcer::N_USER_AGENT)] );

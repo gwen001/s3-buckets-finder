@@ -21,7 +21,7 @@ class BucketBruteForcer
 	];
 	const N_USER_AGENT = 7;
 	
-	const T_PROVIDER = [ 'Amazon', 'Google' ];
+	const T_PROVIDER = [ 'Amazon', 'Google', 'Digitalocean' ];
 	const DEFAULT_PROVIDER = 'Amazon';
 	
 	const WORD_SEPARATOR = '__SEP__';
@@ -148,7 +148,7 @@ class BucketBruteForcer
 	}
 	public function setRegion( $v ) {
 		$v = trim( $v );
-		if( !in_array($v,AmazonBucket::T_REGION) ) {
+		if( !in_array($v,AmazonBucket::T_REGION) && !in_array($v,DigitaloceanBucket::T_REGION) ) {
 			return false;
 		}
 		$this->region = $v;
@@ -272,6 +272,10 @@ class BucketBruteForcer
 	private function init()
 	{
 		$this->bucket_class = $this->provider.'Bucket';
+		
+		if( !strcasecmp($this->provider,'digitalocean') ) {
+			$this->detect_region = true;
+		}
 		
 		$this->t_prefix = array_map( array($this,'cleanString'), $this->t_prefix );
 		$this->t_suffix = array_map( array($this,'cleanString'), $this->t_suffix );
@@ -548,7 +552,7 @@ class BucketBruteForcer
 				$this->printTestResult( 'list',  $l, 'orange' );
 				echo ', ';
 	
-				$h = $bucket->canListHTTP();
+				$h = $bucket->canListHTTP(true); // force the request again, because it has already been used to detect the region or not
 				$this->printTestResult( 'HTTP list',  $h, 'orange' );
 				echo ', ';
 			}

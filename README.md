@@ -28,7 +28,7 @@ Options:
 				2: permutation applied only on the bucket name (a.b.c, b.c.a, ...)
 				3: each elements will be separately permuted, then glogal permutation
 	--prefix	single prefix or listing file
-	--provider	can be: Amazon or Google
+	--provider	can be: amazon, google, digitalocean
 	--region	Amazon only, set the region (overwrite the option detect-region), value can be:
 				us-east-1 us-east-2 us-west-1 us-west-2
 				ap-south-1 ap-southeast-1 ap-southeast-2 ap-northeast-1 ap-northeast-2
