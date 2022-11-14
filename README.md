@@ -69,4 +69,4 @@ Examples:
 	php s3-buckets-bruteforcer.php --bucket listing.txt --region us-east-2 --rlevel 3
 ```
 
-<img src="https://raw.githubusercontent.com/gwen001/s3-buckets-finder/main/preview.png" />
+<img src="https://raw.githubusercontent.com/gwen001/s3-buckets-finder/master/preview.png" />
