@@ -20,44 +20,44 @@ class BucketBruteForcer
 		'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:52.0) Gecko/20100101 Firefox/52.0',
 	];
 	const N_USER_AGENT = 7;
-	
+
 	const T_PROVIDER = [ 'Amazon', 'Google', 'Digitalocean' ];
 	const DEFAULT_PROVIDER = 'Amazon';
-	
+
 	const WORD_SEPARATOR = '__SEP__';
-	
+
 	const TEST_UNKNOW  = -1;
 	const TEST_FAILED  = 0;
 	const TEST_SUCCESS = 1;
-	
+
 	private $t_bucket = [];
 	private $t_prefix = [];
 	private $t_suffix = [];
-	
+
 	private $t_glue = [ '', '-', '.', '_' ];
-	
+
 	private $tests = 'sglhw';
-	
+
 	private $region = '';
-	
+
 	private $permutation = 0;
-	
+
 	private $disable_color = false;
-	
+
 	private $disable_test = false;
-	
+
 	private $max_depth = 1;
 	private $current_depth = 1;
-	
+
 	private $force_recurse = false;
-	
+
 	private $verbosity = 0;
-	
+
 	private $detect_region = false;
-	
+
 	private $provider = self::DEFAULT_PROVIDER;
 	private $bucket_class = '';
-	
+
 	private $n_child = 0;
 	private $max_child = 5;
 	private $loop_sleep = 100000;
@@ -75,23 +75,23 @@ class BucketBruteForcer
 	public function forceRecurse() {
 		$this->force_recurse = true;
 	}
-	
-	
+
+
 	public function detectRegion() {
 		return $this->detect_region = true;
 	}
-	
-	
+
+
 	public function disableColor() {
 		$this->disable_color = true;
 	}
-	
-	
+
+
 	public function disableTest() {
 		$this->disable_test = true;
 	}
-	
-	
+
+
 	public function getMaxDepth() {
 		return $this->max_depth;
 	}
@@ -99,8 +99,8 @@ class BucketBruteForcer
 		$this->max_depth = (int)$v;
 		return true;
 	}
-	
-	
+
+
 	public function getPrefix() {
 		return $this->t_prefix;
 	}
@@ -128,7 +128,7 @@ class BucketBruteForcer
 		return true;
 	}
 
-	
+
 	public function getBucket() {
 		return $this->t_bucket;
 	}
@@ -177,7 +177,7 @@ class BucketBruteForcer
 		return true;
 	}
 
-	
+
 	public function getTests() {
 		return $this->tests;
 	}
@@ -189,7 +189,7 @@ class BucketBruteForcer
 		return true;
 	}
 
-	
+
 	public function getGlue() {
 		return $this->t_glue;
 	}
@@ -198,7 +198,7 @@ class BucketBruteForcer
 		return true;
 	}
 
-	
+
 	public function getPermutation() {
 		return $this->permutation;
 	}
@@ -206,8 +206,8 @@ class BucketBruteForcer
 		$this->permutation = (int)$v;
 		return true;
 	}
-	
-	
+
+
 	public function getVerbosity() {
 		return $this->verbosity;
 	}
@@ -216,7 +216,7 @@ class BucketBruteForcer
 		return true;
 	}
 
-	
+
 	private function cleanString( $str )
 	{
 		$str = preg_replace( '#[^a-z0-9\.\-\_]#', '', strtolower($str) );
@@ -224,25 +224,25 @@ class BucketBruteForcer
 		return $str;
 	}
 
-	
+
 	private function prepare4permutation( $str )
 	{
 		$str = preg_replace( '#[^a-z0-9]#', self::WORD_SEPARATOR, $str );
 		return $str;
 	}
-	
-	
+
+
 	// http://stackoverflow.com/questions/16238510/pcntl-fork-results-in-defunct-parent-process
 	// Thousand Thanks!
 	public function signal_handler( $signal, $pid=null, $status=null )
 	{
 		$pid = (int)$pid;
-		
+
 		// If no pid is provided, Let's wait to figure out which child process ended
 		if( !$pid ){
 			$pid = pcntl_waitpid( -1, $status, WNOHANG );
 		}
-		
+
 		// Get all exited children
 		while( $pid > 0 )
 		{
@@ -261,26 +261,26 @@ class BucketBruteForcer
 				// Store it to handle when the parent process is ready
 				$this->t_signal_queue[$pid] = $status;
 			}
-			
+
 			$pid = pcntl_waitpid( -1, $status, WNOHANG );
 		}
-		
+
 		return true;
 	}
 
-	
+
 	private function init()
 	{
 		$this->bucket_class = $this->provider.'Bucket';
-		
+
 		if( !strcasecmp($this->provider,'digitalocean') ) {
 			$this->detect_region = true;
 		}
-		
+
 		$this->t_prefix = array_map( array($this,'cleanString'), $this->t_prefix );
 		$this->t_suffix = array_map( array($this,'cleanString'), $this->t_suffix );
 		$this->t_bucket = array_map( array($this,'cleanString'), $this->t_bucket );
-		
+
 		if( $this->permutation >= 1 )
 		{
 			if( count($this->prefix) && count($this->suffix) ) {
@@ -288,11 +288,11 @@ class BucketBruteForcer
 				$this->t_prefix = $tmp;
 				$this->t_suffix = $tmp;
 			}
-			
+
 			if( $this->permutation >= 2 )
 			{
 				$this->t_bucket = $this->createElementPermutations( $this->t_bucket );
-				
+
 				if( $this->permutation >= 3 )
 				{
 					$this->t_prefix = $this->createElementPermutations( $this->t_prefix );
@@ -300,24 +300,24 @@ class BucketBruteForcer
 				}
 			}
 		}
-		
+
 		$this->t_prefix = array_unique( $this->t_prefix );
 		$this->t_prefix[] = '';
 		//sort( $this->t_prefix );
-		
+
 		$this->t_suffix = array_unique( $this->t_suffix );
 		$this->t_suffix[] = '';
 		//sort( $this->t_suffix );
 
 		$this->t_bucket = array_unique( $this->t_bucket );
 		//sort( $this->t_bucket );
-		
+
 		//var_dump($this->t_prefix);
 		//var_dump($this->t_suffix);
 		//var_dump($this->t_bucket);
 	}
-	
-	
+
+
 	public function run()
 	{
 		$this->init();
@@ -332,27 +332,27 @@ class BucketBruteForcer
 		echo $this->n_bucket." buckets to test.\n\n";
 		//var_dump($this->t_bucket);
 		//exit();
-			
+
 		posix_setsid();
 		declare( ticks=1 );
 		pcntl_signal( SIGCHLD, array($this,'signal_handler') );
-		
+
 		$this->loop( $this->t_bucket );
 	}
-	
-	
+
+
 	private function loop( $t_buckets )
 	{
 		$n_bucket = count( $t_buckets );
 		//var_dump($n_bucket);
 		//echo $n_bucket." buckets to test.\n\n";
-		
+
 		for( $current=0 ; $current<$n_bucket ; )
 		{
 			if( $this->n_child < $this->max_child )
 			{
 				$pid = pcntl_fork();
-				
+
 				if( $pid == -1 ) {
 					// fork error
 				} elseif( $pid ) {
@@ -374,18 +374,18 @@ class BucketBruteForcer
 
 			usleep( $this->loop_sleep );
 		}
-		
+
 		while( $this->n_child ) {
 			// surely leave the loop please :)
 			sleep( 1 );
 		}
 	}
-	
-	
+
+
 	private function createGobalPermutations( $t_bucket, $t_prefix, $t_suffix, $t_glue )
 	{
 		$t_variations = [];
-		
+
 		foreach( $t_bucket as $b )
 		{
 			foreach( $t_prefix as $p ) {
@@ -403,14 +403,16 @@ class BucketBruteForcer
 				}
 			}
 		}
-		
+
 		$t_variations = array_unique( $t_variations );
-		sort( $t_variations );
-		
+        $t_variations = array_values( $t_variations );
+		// sort( $t_variations );
+        // var_dump($t_variations);
+
 		return $t_variations;
 	}
-	
-	
+
+
 	private function createElementPermutations( $array )
 	{
 		$t_final_permut = [];
@@ -418,7 +420,7 @@ class BucketBruteForcer
 
 		foreach( $array as $i )
 		{
-			$tmp = explode( self::WORD_SEPARATOR, $i ); // ['www','domain','com']
+			$tmp = explode( self::WORD_SEPARATOR, $i ); // ['www|domain|com']
 			if( count($tmp) <= 1 ) {
 				$t_final_permut[] = $i;
 			} else {
@@ -428,37 +430,37 @@ class BucketBruteForcer
 					$t_final_permut[] = implode( self::WORD_SEPARATOR, $p );
 				}
 				// add each part of the element ?
-				//$t_final_permut = array_merge( $t_final_permut, $tmp ); 
+				//$t_final_permut = array_merge( $t_final_permut, $tmp );
 			}
 		}
-		
+
 		return $t_final_permut;
 	}
-	
-	
+
+
 	private function getPermutations( &$array, &$results, $start_i=0 )
 	{
 		if( $start_i == sizeof($array)-1 ) {
 			array_push( $results, $array );
 		}
-		
+
 		for( $i=$start_i; $i<sizeof($array); $i++ ) {
 			// swap array value at $i and $start_i
 			$t = $array[$i];
 			$array[$i] = $array[$start_i];
 			$array[$start_i] = $t;
-	
+
 			// recurse
 			$this->getPermutations( $array, $results, $start_i+1 );
-	
+
 			// restore old order
 			$t = $array[$i];
 			$array[$i] = $array[$start_i];
 			$array[$start_i] = $t;
 		}
 	}
-	
-	
+
+
 	/**
 	 * @todo only test the same separator character ??
 	 */
@@ -467,7 +469,7 @@ class BucketBruteForcer
 		/*if( $this->verbosity <= 1 ) {
 			$this->output( 'Recursion level '.$this->current_depth."\n", 'yellow' );
 		}*/
-		
+
 		$m = preg_match( '#[^0-9a-z]#i', $bucket_name, $matches );
 		//var_dump( $matches );
 		if( $m ) {
@@ -475,7 +477,7 @@ class BucketBruteForcer
 		} else {
 			$t_glue = $this->t_glue;
 		}
-		
+
 		$this->t_bucket[] = $bucket_name; // we don't want to retest this current bucket
 		$t_new_variations = $this->createGobalPermutations( [$bucket_name], $this->t_prefix, $this->t_suffix, $t_glue );
 		$t_new_variations = array_diff( $t_new_variations, $this->t_bucket );
@@ -488,19 +490,19 @@ class BucketBruteForcer
 		$this->max_child = 1; // so childs can only create 1 child, that's it mother fucker!
 		$this->t_process = [];
 		$this->t_signal_queue = [];
-		
+
 		$this->loop( $t_new_variations );
 	}
-	
-	
+
+
 	private function testBucket( $bucket_name )
 	{
 		ob_start();
-		
+
 		$bucket = new $this->bucket_class();
 		$bucket->setName( $bucket_name );
 		$bucket->setRegion( $this->region );
-		
+
 		$e = $bucket->exist( $http_code );
 		if( $e ) {
 			echo 'Testing: ';
@@ -513,7 +515,7 @@ class BucketBruteForcer
 				echo "\n";
 			}
 		}
-		
+
 		if( $e && $this->detect_region )
 		{
 			$region = $bucket->detectRegion();
@@ -526,11 +528,11 @@ class BucketBruteForcer
 				$bucket->setRegion( null );
 			}
 		}
-		
+
 		if( $e && preg_match('#[sglw]#',$this->tests) )
 		{
 			echo "Testing permissions: ";
-			
+
 			if( strstr($this->tests,'s') ) {
 				$s = $bucket->canSetAcl();
 				$this->printTestResult( 'put ACL',  $s, 'red' );
@@ -540,49 +542,49 @@ class BucketBruteForcer
 				}
 				echo ', ';
 			}
-			
+
 			if( strstr($this->tests,'g') ) {
 				$g = $bucket->canGetAcl();
 				$this->printTestResult( 'get ACL',  $g, 'orange' );
 				echo ', ';
 			}
-			
+
 			if( strstr($this->tests,'l') ) {
 				$l = $bucket->canList();
 				$this->printTestResult( 'list',  $l, 'orange' );
 				echo ', ';
-	
+
 				$h = $bucket->canListHTTP(true); // force the request again, because it has already been used to detect the region or not
 				$this->printTestResult( 'HTTP list',  $h, 'orange' );
 				echo ', ';
 			}
-			
+
 			if( strstr($this->tests,'w') ) {
 				$w = $bucket->canWrite();
 				$this->printTestResult( 'write',  $w, 'red' );
 				echo ', ';
 			}
-			
+
 			echo "\n";
 		}
-		
+
 		$result = ob_get_contents();
 		ob_end_clean();
-		
+
 		echo $result;
-		
+
 		if( ($e || $this->force_recurse) && $this->max_depth && $this->current_depth<$this->max_depth ) {
 			$this->current_depth++;
 			$this->recurse( $bucket->getName() );
 		}
 	}
-	
-	
+
+
 	private function printTestResult( $test_name, $result, $color_if_success )
 	{
 		//var_dump( $test_name.'='.$result );
-		
-		if( $result == self::TEST_SUCCESS && (in_array($test_name,['put aCL','write']) || $this->verbosity <= 3) ) {
+
+		if( $result == self::TEST_SUCCESS && (in_array($test_name,['put aCL|write']) || $this->verbosity <= 3) ) {
 			$this->output( $test_name.' success', $color_if_success );
 		} elseif( $this->verbosity <= 1 ) {
 			if( $result == self::TEST_FAILED ) {
@@ -592,8 +594,8 @@ class BucketBruteForcer
 			}
 		}
 	}
-	
-	
+
+
 	private function output( $txt, $color )
 	{
 		if( $this->disable_color ) {

@@ -12,7 +12,7 @@ class BucketExtractor
 	const TECHNIK_WEB = 'WEB';
 	const TECHNIK_CLI = 'CLI';
 	const CLI_MAX_ITEM = 10;
-	const IGNORE_SEP = ',';
+	const IGNORE_SEP = |;
 
 	private $bucket = null;
 	private $bucket_url = null;
@@ -31,12 +31,12 @@ class BucketExtractor
 	private $verbosity = 2;
 
 	private $ignore = [
-			'bmp','gif','ico','jpg','jpeg','png','svg','tif','tiff', // images
-			'mp4','xvid','divx','m4v','mpg','mpeg','ogv','webm', // videos
+			'bmp|gif|ico|jpg|jpeg|png|svg|tif|tiff', // images
+			'mp4|xvid|divx|m4v|mpg|mpeg|ogv|webm', // videos
 			'mp3', // sounds
-			'eot','ttf','woff','woff2', // fonts
-			'css','flv','swf', // web
-			'deb','md5sum', // others
+			'eot|ttf|woff|woff2', // fonts
+			'css|flv|swf', // web
+			'deb|md5sum', // others
 		];
 
 
@@ -142,9 +142,10 @@ class BucketExtractor
 
 		echo "\n";
 		
+		//$cnt = $this->extractCLIlynx( $this->datas );
 		switch( $this->technik ) {
 			case self::TECHNIK_WEB:
-				$cnt = $this->extractWEB(  $this->datas );
+				$cnt = $this->extractWEB( $this->datas );
 				break;
 			case self::TECHNIK_CLI:
 				$cnt = $this->extractCLI( $this->datas );
@@ -182,7 +183,7 @@ class BucketExtractor
 					$f_name = $o['Key'];
 					if( substr($f_name,-1) == '/' || preg_match('#\$folder\$#',$f_name) ) {
 						if( $this->download ) {
-							$this->_mkdir( $this->destination.'/'.str_replace('_$folder$','',$f_name) );
+							$this->_mkdir( $this->destination.'/'.str_replace('_$folder$|',$f_name) );
 						}
 						continue;
 					}
@@ -195,11 +196,13 @@ class BucketExtractor
 					$total++;
 					$f_size = $o['Size'];
 					$f_url = $this->bucket_url.'/'.$f_name;
+					//echo $f_url."\n";
 					
 					$tmpfile = tempnam( '/tmp/', 's3bf-' );
 					$cmd = "aws s3api get-object --bucket ".$this->bucket." --key ".$f_name." ".(strlen($this->region)?'--region '.$this->region:'')." ".$tmpfile." 2>/dev/null";
 					//echo $cmd."\n";
 					exec( $cmd, $f_datas );
+					//var_dump($f_datas);
 					$f_datas = trim( implode( "\n", $f_datas ) );
 	
 					if( $this->download ) {
@@ -222,6 +225,87 @@ class BucketExtractor
 					} elseif( $this->verbosity >= 2 ) {
 						Utils::_print( $f_url."\n", 'dark_grey' );
 					}
+					
+					@unlink( $tmpfile );
+				}
+			}
+		}
+		while( $s_token );
+		
+		return [$total,$cnt];
+	}
+	
+	
+	private function extractCLIlynx( $unused )
+	{
+		$cnt = 0;
+		$total = 0;
+		$s_token = null;
+
+		do
+		{
+			$cmd = "aws s3api list-objects --bucket ".$this->bucket." --max-item ".self::CLI_MAX_ITEM." ".(strlen($this->region)?'--region '.$this->region:'')." ".(strlen($s_token)?'--starting-token '.$s_token:'')." 2>/dev/null";
+			//echo $cmd."\n";
+			exec( $cmd, $datas );
+			$datas = implode( "\n", $datas );
+			$t_datas = json_decode( $datas, true );
+			
+			if( isset($t_datas['NextToken']) ) {
+				$s_token = $t_datas['NextToken'];
+			} else {
+				$s_token = null;
+			}
+			
+			if( isset($t_datas['Contents']) && is_array($t_datas['Contents']) && count($t_datas['Contents']) )
+			{
+				foreach( $t_datas['Contents'] as $o )
+				{
+					$f_name = $o['Key'];
+					if( substr($f_name,-1) == '/' || preg_match('#\$folder\$#',$f_name) ) {
+						if( $this->download ) {
+							$this->_mkdir( $this->destination.'/'.str_replace('_$folder$|',$f_name) );
+						}
+						continue;
+					}
+					
+					$ext = $this->_extension( basename($f_name) );
+					if( in_array($ext,$this->ignore) ) {
+						continue;
+					}
+					
+					$total++;
+					$f_size = $o['Size'];
+					$f_url = $this->bucket_url.'/'.$f_name;
+					//echo $f_url."\n";
+					
+					$tmpfile = tempnam( '/tmp/', 's3bf-' );
+					//$cmd = "aws s3api get-object --bucket ".$this->bucket." --key ".$f_name." ".(strlen($this->region)?'--region '.$this->region:'')." ".$tmpfile." 2>/dev/null";
+					$cmd = "lynx -source ".$f_url." > ".$tmpfile;
+					//echo $cmd."\n";
+					exec( $cmd, $f_datas );
+					//var_dump($f_datas);
+					$f_datas = trim( implode( "\n", $f_datas ) );
+	
+					if( $this->download ) {
+						$dir = rtrim( dirname($f_name), ' /' );
+						if( $dir!='' && $dir!='.' && $dir!='./' ) {
+							$this->_mkdir( $this->destination.'/'.$dir );
+						}
+					}
+		
+					//if( strlen($f_datas) )
+					{
+						if( $this->verbosity >= 1 ) {
+							Utils::_print( $f_url." (".Utils::format_bytes((int)$f_size).")\n" );
+						}
+						if( $this->download ) {
+							$dst = $this->destination.'/'.$f_name;
+							rename( $tmpfile, $dst );
+						}
+						$cnt++;
+					}/* elseif( $this->verbosity >= 2 ) {
+						Utils::_print( $f_url."\n", 'dark_grey' );
+					}*/
 					
 					@unlink( $tmpfile );
 				}

@@ -1,6 +1,25 @@
 # s3-buckets-bruteforcer
+
 PHP tool to brute force Amazon S3 bucket  
 Note that this is an automated tool, manual check is still required.  
+
+## Requirements
+
+**Amazon S3:**  
+```
+apt-get install awscli
+aws configure
+```
+**Google Cloud:**  
+https://cloud.google.com/storage/docs/gsutil_install
+
+## Install
+
+```
+git clone https://github.com/gwen001/s3-buckets-finder
+```
+
+## Usage
 
 ```
 Usage: php s3-buckets-bruteforcer.php [OPTIONS] --bucket <bucket>
@@ -50,20 +69,4 @@ Examples:
 	php s3-buckets-bruteforcer.php --bucket listing.txt --region us-east-2 --rlevel 3
 ```
 
-# Requirements
-
-**Amazon S3:**  
-```
-apt-get install awscli
-aws configure
-```
-**Google Cloud:**  
-https://cloud.google.com/storage/docs/gsutil_install
-
-
-<br><br>
-<img src="https://raw.githubusercontent.com/gwen001/s3-buckets-finder/master/example-bf.png" alt="s3 buckets bruteforcer example">
-<br><br>
-
-I don't believe in license.  
-You can do want you want with this program.  
+<img src="https://raw.githubusercontent.com/gwen001/s3-buckets-finder/main/preview.png" />
