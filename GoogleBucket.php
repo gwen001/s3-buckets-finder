@@ -2,8 +2,7 @@
 
 /**
  * I don't believe in license
- * You can do want you want with this program
- * - gwen -
+ * You can do whatever you want with this program
  */
 
 class GoogleBucket
@@ -17,34 +16,34 @@ class GoogleBucket
 	];
 	const VALID_HTTP_CODE = [200,403];
 	//const VALID_HTTP_CODE = [200,301,307,403];
-	
+
 	public $name = '';
 	public $url = '';
 	public $region = null;
 	public $ssl = null;
-	
+
 	private $exist = null;
 	private $canSetACL = null;
 	private $canGetACL = null;
 	private $canList = null;
 	private $canListHTTP = null;
 	private $canWrite = null;
-	
-	
+
+
 	public function getUrl( $https=true )
 	{
 		$this->ssl = $https;
-		
+
 		$url = ($https ? 'https' : 'http') . '://';
 		$url .= str_replace( '__BUCKET-NAME__', $this->name, self::BASE_URL );
 		//if( $this->region ) {
 		//	$url = str_replace( '.digitaloceanspaces.com', '.'.$this->region.'.digitaloceanspaces.com', $url );
 		//}
-				
+
 		return $url;
 	}
-	
-	
+
+
 	public function getName() {
 		return $this->name;
 	}
@@ -54,8 +53,8 @@ class GoogleBucket
 		$this->_url = $this->url;
 		return true;
 	}
-	
-	
+
+
 	public function getRegion() {
 		return $this->region;
 	}
@@ -67,23 +66,23 @@ class GoogleBucket
 		$this->region = $r;
 		return true;
 	}
-	
-	
+
+
 	public function detectRegion()
 	{
 		/*foreach( self::T_REGION as $r )
 		{
 			$this->setRegion( $r );
-			
+
 			if( $this->canList(true) != 2 ) {
 				return $r;
 			}
 		}*/
-		
+
 		return false;
 	}
-	
-	
+
+
 	public function exist( &$http_code=0, $redo=false )
 	{
 		if( is_null($this->exist) || $redo )
@@ -102,9 +101,9 @@ class GoogleBucket
 			$t_info = curl_getinfo( $c );
 			//var_dump( $t_info );
 			curl_close( $c );
-			
+
 			$http_code = $t_info['http_code'];
-			
+
 			if( $http_code == 0 )
 			{
 				$c = curl_init();
@@ -121,17 +120,17 @@ class GoogleBucket
 				$t_info = curl_getinfo( $c );
 				//var_dump( $t_info );
 				curl_close( $c );
-				
+
 				$http_code = $t_info['http_code'];
 			}
-			
+
 			$this->exist = in_array( $http_code, self::VALID_HTTP_CODE );
 		}
-		
+
 		return $this->exist;
 	}
-	
-	
+
+
 	public function canSetAcl( $redo=false )
 	{
 		if( is_null($this->canSetACL) || $redo )
@@ -141,7 +140,7 @@ class GoogleBucket
 			exec( $cmd, $output );
 			$output = strtolower( trim( implode("\n",$output) ) );
 			//var_dump( $output );
-			
+
 			if( preg_match('#CommandException|AccessDeniedException#i',$output) ) {
 				$this->canSetACL = BucketBruteForcer::TEST_FAILED;
 			}
@@ -149,11 +148,11 @@ class GoogleBucket
 				$this->canSetACL = BucketBruteForcer::TEST_SUCCESS;
 			}
 		}
-		
+
 		return $this->canSetACL;
 	}
-	
-	
+
+
 	public function canGetAcl( $redo=false )
 	{
 		if( is_null($this->canGetACL) || $redo )
@@ -163,7 +162,7 @@ class GoogleBucket
 			exec( $cmd, $output );
 			$output = strtolower( trim( implode("\n",$output) ) );
 			//var_dump( $output );
-			
+
 			if( preg_match('#CommandException|AccessDeniedException#i',$output) ) {
 				$this->canGetACL = BucketBruteForcer::TEST_FAILED;
 			}
@@ -171,11 +170,11 @@ class GoogleBucket
 				$this->canGetACL = BucketBruteForcer::TEST_SUCCESS;
 			}
 		}
-		
+
 		return $this->canGetACL;
 	}
-	
-	
+
+
 	public function canList( $redo=false )
 	{
 		if( is_null($this->canList) || $redo )
@@ -185,7 +184,7 @@ class GoogleBucket
 			exec( $cmd, $output );
 			$output = strtolower( trim( implode("\n",$output) ) );
 			//var_dump( $output );
-			
+
 			if( preg_match('#CommandException|AccessDeniedException#i',$output) ) {
 				$this->canList = BucketBruteForcer::TEST_FAILED;
 			}
@@ -193,11 +192,11 @@ class GoogleBucket
 				$this->canList = BucketBruteForcer::TEST_SUCCESS;
 			}
 		}
-		
+
 		return $this->canList;
 	}
-	
-	
+
+
 	public function canListHTTP( $redo=false )
 	{
 		if( is_null($this->canListHTTP) || $redo )
@@ -215,9 +214,9 @@ class GoogleBucket
 			$t_info = curl_getinfo( $c );
 			//var_dump( $t_info );
 			curl_close( $c );
-			
+
 			$http_code = $t_info['http_code'];
-			
+
 			if( $http_code == 200 ) {
 				$this->canListHTTP = BucketBruteForcer::TEST_SUCCESS;
 			} elseif( in_array($http_code,self::VALID_HTTP_CODE) ) {
@@ -226,11 +225,11 @@ class GoogleBucket
 				$this->canListHTTP = BucketBruteForcer::TEST_UNKNOW;
 			}
 		}
-		
+
 		return $this->canListHTTP;
 	}
-	
-	
+
+
 	public function canWrite( $redo=false )
 	{
 		if( is_null($this->canWrite) || $redo )
@@ -240,7 +239,7 @@ class GoogleBucket
 			exec( $cmd, $output );
 			$output = strtolower( trim( implode("\n",$output) ) );
 			//var_dump( $output );
-			
+
 			if( preg_match('#CommandException|AccessDeniedException#i',$output) ) {
 				$this->canWrite = BucketBruteForcer::TEST_FAILED;
 			}
@@ -248,7 +247,7 @@ class GoogleBucket
 				$this->canWrite = BucketBruteForcer::TEST_SUCCESS;
 			}
 		}
-		
+
 		return $this->canWrite;
 	}
 }

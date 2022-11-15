@@ -3,13 +3,8 @@
 
 /**
  * I don't believe in license
- * You can do want you want with this program
- * - gwen -
+ * You can do whatever you want with this program
  */
-
-// function autoload( $c ) {
-// 	include( $c.'.php' );
-// }
 
 spl_autoload_register(function ( $c ) {
 	include( $c.'.php' );

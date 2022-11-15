@@ -2,8 +2,7 @@
 
 /**
  * I don't believe in license
- * You can do want you want with this program
- * - gwen -
+ * You can do whatever you want with this program
  */
 
 class AmazonBucket
@@ -16,20 +15,20 @@ class AmazonBucket
 		'ca-central-1', 'sa-east-1',
 	];
 	const VALID_HTTP_CODE = [200,301,307,403];
-	
+
 	public $name = '';
 	public $url = '';
 	public $region = null;
 	public $ssl = null;
-	
+
 	private $exist = null;
 	private $canSetACL = null;
 	private $canGetACL = null;
 	private $canList = null;
 	private $canListHTTP = null;
 	private $canWrite = null;
-	
-	
+
+
 	public function getUrl( $https=true )
 	{
 		$this->ssl = $https;
@@ -40,11 +39,11 @@ class AmazonBucket
 			$url = str_replace( 's3.amazonaws.com', 's3-'.$this->region.'.amazonaws.com', $url );
 		}
 		//var_dump($url);
-		
+
 		return $url;
 	}
-	
-	
+
+
 	public function getName() {
 		return $this->name;
 	}
@@ -54,8 +53,8 @@ class AmazonBucket
 		$this->_url = $this->url;
 		return true;
 	}
-	
-	
+
+
 	public function getRegion() {
 		return $this->region;
 	}
@@ -67,29 +66,29 @@ class AmazonBucket
 		$this->region = $r;
 		return true;
 	}
-	
-	
+
+
 	public function detectRegion()
 	{
 		foreach( self::T_REGION as $region )
 		{
 			$this->setRegion( $region );
 			$this->canListHTTP( true, $r );
-			
+
 			if( stristr($r,'<Code>PermanentRedirect</Code>') && stristr($r,'The bucket you are attempting to access must be addressed using the specified endpoint') ) {
 				$m = preg_match( '#<Endpoint>.*s3(.*).amazonaws.com</Endpoint>#', $r, $matches );
 				//var_dump( $matches );
 				$region = trim( $matches[1], '-.' );
 			}
-			
+
 			//var_dump( $region );
 			return $region;
 		}
-		
+
 		return false;
 	}
-	
-	
+
+
 	public function exist( &$http_code=0, $redo=false )
 	{
 		if( is_null($this->exist) || $redo )
@@ -108,9 +107,9 @@ class AmazonBucket
 			$t_info = curl_getinfo( $c );
 			//var_dump( $t_info );
 			curl_close( $c );
-			
+
 			$http_code = $t_info['http_code'];
-			
+
 			if( $http_code == 0 )
 			{
 				$c = curl_init();
@@ -127,17 +126,17 @@ class AmazonBucket
 				$t_info = curl_getinfo( $c );
 				//var_dump( $t_info );
 				curl_close( $c );
-				
+
 				$http_code = $t_info['http_code'];
 			}
-			
+
 			$this->exist = in_array( $http_code, self::VALID_HTTP_CODE );
 		}
-		
+
 		return $this->exist;
 	}
-	
-	
+
+
 	public function canSetAcl( $redo=false )
 	{
 		if( is_null($this->canSetACL) || $redo )
@@ -147,7 +146,7 @@ class AmazonBucket
 			exec( $cmd, $output );
 			$output = strtolower( trim( implode("\n",$output) ) );
 			//var_dump( $output );
-			
+
 			if( preg_match('#A client error|AllAccessDisabled|AllAccessDisabled|AccessDenied#i',$output) ) {
 				$this->canSetACL = BucketBruteForcer::TEST_FAILED;
 			}
@@ -158,11 +157,11 @@ class AmazonBucket
 				$this->canSetACL = BucketBruteForcer::TEST_SUCCESS;
 			}
 		}
-		
+
 		return $this->canSetACL;
 	}
-	
-	
+
+
 	public function canGetAcl( $redo=false )
 	{
 		if( is_null($this->canGetACL) || $redo )
@@ -172,7 +171,7 @@ class AmazonBucket
 			exec( $cmd, $output );
 			$output = strtolower( trim( implode("\n",$output) ) );
 			//var_dump( $output );
-			
+
 			if( preg_match('#A client error|AllAccessDisabled|AllAccessDisabled|AccessDenied#i',$output) ) {
 				$this->canGetACL = BucketBruteForcer::TEST_FAILED;
 			}
@@ -183,11 +182,11 @@ class AmazonBucket
 				$this->canGetACL = BucketBruteForcer::TEST_SUCCESS;
 			}
 		}
-		
+
 		return $this->canGetACL;
 	}
-	
-	
+
+
 	public function canList( $redo=false )
 	{
 		if( is_null($this->canList) || $redo )
@@ -197,7 +196,7 @@ class AmazonBucket
 			exec( $cmd, $output );
 			$output = strtolower( trim( implode("\n",$output) ) );
 			//var_dump( $output );
-			
+
 			if( preg_match('#A client error|AllAccessDisabled|AllAccessDisabled|AccessDenied#i',$output) ) {
 				$this->canList = BucketBruteForcer::TEST_FAILED;
 			}
@@ -208,11 +207,11 @@ class AmazonBucket
 				$this->canList = BucketBruteForcer::TEST_SUCCESS;
 			}
 		}
-		
+
 		return $this->canList;
 	}
-	
-	
+
+
 	public function canListHTTP( $redo=false, &$r=null )
 	{
 		if( is_null($this->canListHTTP) || $redo )
@@ -230,10 +229,10 @@ class AmazonBucket
 			$t_info = curl_getinfo( $c );
 			//var_dump( $t_info );
 			curl_close( $c );
-			
+
 			$http_code = $t_info['http_code'];
 			//var_dump($http_code);
-			
+
 			if( $http_code == 200 ) {
 				$this->canListHTTP = BucketBruteForcer::TEST_SUCCESS;
 			} elseif( in_array($http_code,self::VALID_HTTP_CODE) ) {
@@ -242,11 +241,11 @@ class AmazonBucket
 				$this->canListHTTP = BucketBruteForcer::TEST_UNKNOW;
 			}
 		}
-		
+
 		return $this->canListHTTP;
 	}
-	
-	
+
+
 	public function canWrite( $redo=false )
 	{
 		if( is_null($this->canWrite) || $redo )
@@ -256,7 +255,7 @@ class AmazonBucket
 			exec( $cmd, $output );
 			$output = strtolower( trim( implode("\n",$output) ) );
 			//var_dump( $output );
-			
+
 			if( preg_match('#A client error|upload failed|AllAccessDisabled|AllAccessDisabled|AccessDenied#i',$output) ) {
 				$this->canWrite = BucketBruteForcer::TEST_FAILED;
 			}
@@ -267,7 +266,7 @@ class AmazonBucket
 				$this->canWrite = BucketBruteForcer::TEST_SUCCESS;
 			}
 		}
-		
+
 		return $this->canWrite;
 	}
 }
