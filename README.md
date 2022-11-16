@@ -1,13 +1,20 @@
+<h1 align="center">s3-buckets-bruteforcer</h1>
+
+<h4 align="center">PHP tool to brute force Amazon S3 bucket and test permissions.</h4>
+
 <p align="left">
     <img src="https://img.shields.io/badge/php-%3E=5.5-blue" alt="php badge">
     <img src="https://img.shields.io/badge/license-MIT-green" alt="MIT license badge">
     <a href="https://twitter.com/intent/tweet?text=https%3a%2f%2fgithub.com%2fgwen001%2fs3-buckets-bruteforcer%2f" target="_blank"><img src="https://img.shields.io/twitter/url?style=social&url=https%3A%2F%2Fgithub.com%2Fgwen001%2Fs3-buckets-bruteforcer" alt="twitter badge"></a>
 </p>
 
-# s3-buckets-bruteforcer
+<p align="center">
+    <img src="https://img.shields.io/github/stars/gwen001/s3-buckets-bruteforcer?style=social" alt="github stars badge">
+    <img src="https://img.shields.io/github/watchers/gwen001/s3-buckets-bruteforcer?style=social" alt="github watchers badge">
+    <img src="https://img.shields.io/github/forks/gwen001/s3-buckets-bruteforcer?style=social" alt="github forks badge">
+</p>
 
-PHP tool to brute force Amazon S3 bucket  
-Note that this is an automated tool, manual check is still required.  
+---
 
 ## Requirements
 
@@ -74,6 +81,8 @@ Examples:
 	php s3-buckets-bruteforcer.php --bucket listing.txt --prefix prefix.txt --suffix suffix1.txt --suffix2.txt --perform esw --thread 10
 	php s3-buckets-bruteforcer.php --bucket listing.txt --region us-east-2 --rlevel 3
 ```
+
+---
 
 <img src="https://raw.githubusercontent.com/gwen001/s3-buckets-finder/master/preview.png" />
 
