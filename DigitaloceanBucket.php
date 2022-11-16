@@ -1,10 +1,5 @@
 <?php
 
-/**
- * I don't believe in license
- * You can do whatever you want with this program
- */
-
 class DigitaloceanBucket
 {
 	const BASE_URL = '__BUCKET-NAME__.digitaloceanspaces.com';

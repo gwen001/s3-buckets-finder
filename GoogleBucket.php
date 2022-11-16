@@ -1,10 +1,5 @@
 <?php
 
-/**
- * I don't believe in license
- * You can do whatever you want with this program
- */
-
 class GoogleBucket
 {
 	const BASE_URL = '__BUCKET-NAME__.storage.googleapis.com';
