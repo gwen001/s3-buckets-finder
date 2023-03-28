@@ -16,6 +16,11 @@
 
 ---
 
+## Description
+
+This PHP tool searches for AWS S3 buckets using a given wordlist. When an existing bucket is found, the tool checks the permissions of the bucket:
+get ACL, put ACL, list, HTTP list, write
+
 ## Requirements
 
 **Amazon S3:**  
